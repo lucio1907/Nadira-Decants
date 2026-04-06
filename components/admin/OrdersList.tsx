@@ -487,7 +487,7 @@ Email: ${order.payerEmail}
                           </button>
                               {selectedOrder.direccionEnvio.notas && (
                                 <div className="mt-2 pt-2 border-t border-[var(--border)] text-xs italic text-[var(--text-secondary)]">
-                                  " {selectedOrder.direccionEnvio.notas} "
+                                  &quot; {selectedOrder.direccionEnvio.notas} &quot;
                                 </div>
                               )}
                             </div>
