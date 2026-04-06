@@ -1,50 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { mockProductos } from "@/lib/mock-data";
 import { createAdminClient } from "@/lib/supabase/server";
 
+import { getProductsServer } from "@/lib/products-server";
+
 export const GET = async () => {
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      const supabase = await createAdminClient();
-      
-      const { data: productosData, error } = await supabase
-        .from("productos")
-        .select(`
-          *,
-          variantes (*)
-        `);
-
-      if (error) {
-        console.error("Supabase error fetching products:", error);
-        return NextResponse.json(mockProductos);
-      }
-
-      // Format response to match the expected Producto interface
-      const formattedProductos = productosData.map((prod: any) => ({
-        id: prod.id,
-        slug: prod.slug,
-        nombre: prod.nombre,
-        marca: prod.marca,
-        descripcion: prod.descripcion,
-        notas: prod.notas || { salida: [], corazon: [], fondo: [] },
-        imagenes: prod.imagenes || [],
-        variantes: (prod.variantes || []).sort((a: any, b: any) => a.ml - b.ml).map((v: any) => ({
-          ml: v.ml,
-          precio: Number(v.precio),
-          stock: v.stock
-        }))
-      }));
-
-      return NextResponse.json(formattedProductos);
-    }
-
-    // Fallback to mock data
-    return NextResponse.json(mockProductos);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json(mockProductos);
-  }
+  const products = await getProductsServer();
+  return NextResponse.json(products);
 };
 
 export const POST = async (request: Request) => {
