@@ -14,49 +14,47 @@ export const POST = async (request: Request) => {
     const data = await request.json();
     const { id, variantes, ...productData } = data; // remove id if sent
 
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      const supabase = await createAdminClient();
-      
-      const { data: newProduct, error: productError } = await supabase
-        .from("productos")
-        .insert([
-          {
-            slug: productData.slug,
-            nombre: productData.nombre,
-            marca: productData.marca,
-            descripcion: productData.descripcion,
-            notas: productData.notas,
-            imagenes: productData.imagenes
-          }
-        ])
-        .select()
-        .single();
-      
-      if (productError) {
-        throw productError;
-      }
-
-      if (variantes && variantes.length > 0) {
-        const variantesToInsert = variantes.map((v: any) => ({
-          producto_id: newProduct.id,
-          ml: v.ml,
-          precio: v.precio,
-          stock: v.stock || 0
-        }));
-
-        const { error: variantesError } = await supabase
-          .from("variantes")
-          .insert(variantesToInsert);
-
-        if (variantesError) {
-          throw variantesError;
+    const supabase = await createAdminClient();
+    
+    const { data: newProduct, error: productError } = await supabase
+      .from("productos")
+      .insert([
+        {
+          slug: productData.slug,
+          nombre: productData.nombre,
+          marca: productData.marca,
+          descripcion: productData.descripcion,
+          notas: productData.notas,
+          imagenes: productData.imagenes,
+          ml_totales_botella: productData.mlTotalesBotella
         }
-      }
-
-      return NextResponse.json({ id: newProduct.id, ...data });
+      ])
+      .select()
+      .single();
+    
+    if (productError) {
+      throw productError;
     }
 
-    return NextResponse.json({ id: Date.now().toString(), ...data });
+    if (variantes && variantes.length > 0) {
+      const variantesToInsert = variantes.map((v: any) => ({
+        producto_id: newProduct.id,
+        ml: v.ml,
+        precio: v.precio,
+        stock: v.stock || 0,
+        costo: v.costo || 0
+      }));
+
+      const { error: variantesError } = await supabase
+        .from("variantes")
+        .insert(variantesToInsert);
+
+      if (variantesError) {
+        throw variantesError;
+      }
+    }
+
+    return NextResponse.json({ id: newProduct.id, ...data });
   } catch (error) {
     console.error("Error creating product:", error);
     return NextResponse.json({ error: "Failed to create" }, { status: 500 });

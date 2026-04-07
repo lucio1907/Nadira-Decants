@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { SectionHeading } from "@/components/home/SectionHeading";
 import { AboutSection } from "@/components/home/AboutSection";
+import { FAQSection } from "@/components/home/FAQSection";
 
 const features = [
   {
@@ -77,6 +78,9 @@ const HomePage = async () => {
 
       {/* About Section */}
       <AboutSection />
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* CTA Section — minimal */}
       <section

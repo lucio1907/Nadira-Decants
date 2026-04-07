@@ -6,70 +6,96 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Trash2, Plus, Upload, X } from "lucide-react";
 
-type ProductFormData = Omit<Producto, "id">;
+type FormVariante = {
+  ml: string | number;
+  precio: string | number;
+  stock: string | number;
+  costo: string | number;
+};
 
-const emptyForm: ProductFormData = {
+type FormProductData = Omit<Producto, "id" | "variantes"> & {
+  variantes: FormVariante[];
+};
+
+const emptyForm: FormProductData = {
   slug: "",
   nombre: "",
   marca: "",
   descripcion: "",
   notas: { salida: [], corazon: [], fondo: [] },
   imagenes: [],
-  variantes: [{ ml: 10, precio: 0, stock: 0 }],
+  variantes: [{ ml: 10, precio: 0, stock: 0, costo: 0 }],
+  mlTotalesBotella: 100,
 };
 
 export function ProductForm({ initialData, isEdit = false }: { initialData?: Producto, isEdit?: boolean }) {
-  const [formData, setFormData] = useState<ProductFormData>(initialData || emptyForm);
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const router = useRouter();
 
+  // Transform initial data if provided
+  const getInitialState = (): FormProductData => {
+    if (!initialData) return emptyForm;
+    return {
+      ...initialData,
+      ml_totales_botella: initialData.mlTotalesBotella || 100,
+      variantes: initialData.variantes.map(v => ({
+        ml: v.ml,
+        precio: v.precio,
+        stock: v.stock,
+        costo: v.costo || 0
+      }))
+    } as any;
+  };
+
+  const [formData, setFormData] = useState<FormProductData>(getInitialState());
+
   // Basic Fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ 
+    setFormData((prev: FormProductData) => ({ 
       ...prev, 
       [name]: value,
-      ...(name === "nombre" && !isEdit ? { slug: value.toLowerCase().replace(/\\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {})
+      ...(name === "nombre" && !isEdit ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {})
     }));
   };
 
   // Variantes
   const addVariante = () => {
-    setFormData(prev => ({
+    setFormData((prev: FormProductData) => ({
       ...prev,
-      variantes: [...prev.variantes, { ml: 0, precio: 0, stock: 0 }]
+      variantes: [...prev.variantes, { ml: 0, precio: 0, stock: 0, costo: 0 }]
     }));
   };
   const removeVariante = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev: FormProductData) => ({
       ...prev,
       variantes: prev.variantes.filter((_, i) => i !== index)
     }));
   };
-  const updateVariante = (index: number, field: keyof Variante, value: number) => {
+  const updateVariante = (index: number, field: keyof FormVariante, value: string | number) => {
     const newVariantes = [...formData.variantes];
     newVariantes[index] = { ...newVariantes[index], [field]: value };
-    setFormData(prev => ({ ...prev, variantes: newVariantes }));
+    setFormData((prev: FormProductData) => ({ ...prev, variantes: newVariantes }));
   };
 
   // Notas
   const handleNotaChange = (tipo: keyof Producto['notas'], index: number, value: string) => {
     const newNotas = [...formData.notas[tipo]];
     newNotas[index] = value;
-    setFormData(prev => ({
+    setFormData((prev: FormProductData) => ({
       ...prev,
       notas: { ...prev.notas, [tipo]: newNotas }
     }));
   };
   const addNota = (tipo: keyof Producto['notas']) => {
-    setFormData(prev => ({
+    setFormData((prev: FormProductData) => ({
       ...prev,
       notas: { ...prev.notas, [tipo]: [...prev.notas[tipo], ""] }
     }));
   };
   const removeNota = (tipo: keyof Producto['notas'], index: number) => {
-    setFormData(prev => ({
+    setFormData((prev: FormProductData) => ({
       ...prev,
       notas: { ...prev.notas, [tipo]: prev.notas[tipo].filter((_, i) => i !== index) }
     }));
@@ -90,7 +116,7 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
         });
         const json = await res.json();
         if (json.url) {
-          setFormData(prev => ({ ...prev, imagenes: [...prev.imagenes, json.url] }));
+          setFormData((prev: FormProductData) => ({ ...prev, imagenes: [...prev.imagenes, json.url] }));
         }
       }
     } catch (err) {
@@ -102,7 +128,7 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
     }
   };
   const removeImage = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev: FormProductData) => ({
       ...prev,
       imagenes: prev.imagenes.filter((_, i) => i !== index)
     }));
@@ -117,7 +143,22 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
       const url = isEdit ? `/api/productos/${initialData?.id}` : `/api/productos`;
       const method = isEdit ? "PUT" : "POST";
       
-      const payload = isEdit ? { ...formData, id: initialData?.id } : formData;
+      // Asegurar que los valores numéricos de las variantes sean números antes de enviar
+      const sanitizedVariantes = formData.variantes.map((v) => ({
+        ...v,
+        ...v,
+        ml: Number(v.ml) || 0,
+        precio: Number(v.precio) || 0,
+        stock: Number(v.stock) || 0,
+        costo: Number(v.costo) || 0,
+      }));
+
+      const payload = { 
+        ...formData, 
+        variantes: sanitizedVariantes,
+        mlTotalesBotella: Number(formData.mlTotalesBotella) || 0,
+        id: initialData?.id 
+      };
 
       const res = await fetch(url, {
         method,
@@ -161,6 +202,23 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
             <label className="text-nd-label mb-2 block">Descripción</label>
             <textarea required name="descripcion" value={formData.descripcion} onChange={handleChange} className="nd-input" rows={4} />
           </div>
+          <div>
+            <label className="text-nd-label mb-2 block">Capacidad Botella Original (ml)</label>
+            <input 
+              required 
+              type="text" 
+              inputMode="numeric"
+              name="mlTotalesBotella" 
+              value={formData.mlTotalesBotella || ""} 
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || /^\d*$/.test(val)) {
+                  setFormData(prev => ({ ...prev, mlTotalesBotella: val === "" ? 0 : Number(val) }));
+                }
+              }} 
+              className="nd-input" 
+            />
+          </div>
         </div>
       </section>
 
@@ -178,15 +236,67 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
             <div key={i} className="flex flex-wrap md:flex-nowrap items-end gap-4 bg-[var(--surface-raised)] p-4 rounded border border-[var(--border)]">
               <div className="flex-1 min-w-[100px]">
                 <label className="text-nd-label block mb-1">Volumen (ml)</label>
-                <input required type="number" min="0" value={v.ml} onChange={(e) => updateVariante(i, "ml", Number(e.target.value))} className="nd-input !pt-2 !pb-2" />
+                <input 
+                  required 
+                  type="text" 
+                  inputMode="numeric"
+                  value={v.ml} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*$/.test(val)) {
+                      updateVariante(i, "ml", val);
+                    }
+                  }} 
+                  className="nd-input !pt-2 !pb-2" 
+                />
               </div>
               <div className="flex-1 min-w-[100px]">
                 <label className="text-nd-label block mb-1">Precio ($)</label>
-                <input required type="number" min="0" value={v.precio} onChange={(e) => updateVariante(i, "precio", Number(e.target.value))} className="nd-input !pt-2 !pb-2" />
+                <input 
+                  required 
+                  type="text" 
+                  inputMode="decimal"
+                  value={v.precio} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                      updateVariante(i, "precio", val);
+                    }
+                  }} 
+                  className="nd-input !pt-2 !pb-2" 
+                />
               </div>
               <div className="flex-1 min-w-[100px]">
                 <label className="text-nd-label block mb-1">Stock</label>
-                <input required type="number" min="0" value={v.stock} onChange={(e) => updateVariante(i, "stock", Number(e.target.value))} className="nd-input !pt-2 !pb-2" />
+                <input 
+                  required 
+                  type="text" 
+                  inputMode="numeric"
+                  value={v.stock} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*$/.test(val)) {
+                      updateVariante(i, "stock", val);
+                    }
+                  }} 
+                  className="nd-input !pt-2 !pb-2" 
+                />
+              </div>
+              <div className="flex-1 min-w-[100px]">
+                <label className="text-nd-label block mb-1">Costo ($)</label>
+                <input 
+                  required 
+                  type="text" 
+                  inputMode="decimal"
+                  value={v.costo} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                      updateVariante(i, "costo", val);
+                    }
+                  }} 
+                  className="nd-input !pt-2 !pb-2" 
+                />
               </div>
               <button type="button" onClick={() => removeVariante(i)} className="p-2 mb-2 text-[#D71921] hover:bg-[rgba(215,25,33,0.05)] rounded">
                 <Trash2 size={20} />

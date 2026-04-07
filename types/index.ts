@@ -2,6 +2,7 @@ export interface Variante {
   ml: number;
   precio: number;
   stock: number;
+  costo?: number;
 }
 
 export interface Producto {
@@ -17,6 +18,7 @@ export interface Producto {
   };
   imagenes: string[];
   variantes: Variante[];
+  mlTotalesBotella?: number;
 }
 
 export interface CartItem {

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { ThemeToggle } from "./ThemeToggle";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -11,6 +13,31 @@ export const Navbar = () => {
   const [mounted, setMounted] = useState(false);
   const itemCount = useCartStore((s) => s.getItemCount());
   const openCart = useCartStore((s) => s.openCart);
+  const pathname = usePathname();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Reset URL hash
+      window.history.pushState(null, "", window.location.pathname);
+    }
+    setMobileOpen(false);
+  };
+
+  const handleAnchorClick = (e: React.MouseEvent, href: string) => {
+    if (href.startsWith("/#") && pathname === "/") {
+      e.preventDefault();
+      const id = href.split("#")[1];
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        // Update URL hash manually
+        window.history.pushState(null, "", href);
+      }
+    }
+    setMobileOpen(false);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -35,6 +62,7 @@ export const Navbar = () => {
     { href: "/", label: "Inicio" },
     { href: "/#productos", label: "Catálogo" },
     { href: "/#sobre-nosotros", label: "Sobre Nosotros" },
+    { href: "/#faq", label: "Preguntas" },
   ];
 
   return (
@@ -47,15 +75,17 @@ export const Navbar = () => {
           {/* Logo — Playfair */}
           <Link
             href="/"
-            className="tracking-[0.15em] hover:opacity-80 transition-opacity"
-            style={{
-              fontFamily: "var(--font-display)",
-              color: "var(--text-display)",
-              fontSize: "18px",
-              fontWeight: 500,
-            }}
+            onClick={handleHomeClick}
+            className="hover:opacity-80 transition-opacity flex items-center"
           >
-            NADIRA
+            <Image
+              src="/images/nadira-new.svg"
+              alt="NADIRA"
+              width={60}
+              height={60}
+              className="object-contain"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -64,6 +94,13 @@ export const Navbar = () => {
               <Link
                 key={link.label}
                 href={link.href}
+                onClick={(e) => {
+                  if (link.href === "/") {
+                    handleHomeClick(e);
+                  } else if (link.href.includes("#")) {
+                    handleAnchorClick(e, link.href);
+                  }
+                }}
                 className="nd-nav-link"
               >
                 {link.label}
@@ -183,12 +220,21 @@ export const Navbar = () => {
               { href: "/", label: "Inicio" },
               { href: "/#productos", label: "Catálogo" },
               { href: "/#sobre-nosotros", label: "Sobre Nosotros" },
+              { href: "/#faq", label: "Preguntas" },
               { href: "/carrito", label: "Carrito" }
             ].map((link, i) => (
               <Link
                 key={link.label}
                 href={link.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={(e) => {
+                  if (link.href === "/") {
+                    handleHomeClick(e);
+                  } else if (link.href.includes("#")) {
+                    handleAnchorClick(e, link.href);
+                  } else {
+                    setMobileOpen(false);
+                  }
+                }}
                 className="group w-fit"
                 style={{
                   fontFamily: "var(--font-display)",
