@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProductBySlug, getProducts } from "@/lib/products";
 import { VariantSelector } from "@/components/product/VariantSelector";
 import { ProductNotasSection } from "@/components/product/ProductNotasSection";
+import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -118,43 +119,18 @@ const ProductoPage = async ({
                   style={{ opacity: 0.2 }}
                 />
 
-                {/* The "Stage" or frame for the image */}
+                {/* The "Stage" or frame for the carousel */}
                 <div 
-                  className="relative z-10 w-[80%] h-auto aspect-square bg-white/[0.03] backdrop-blur-3xl flex items-center justify-center p-6 md:p-8 border border-white/[0.05] shadow-[0_40px_100px_rgba(0,0,0,0.5)]"
+                  className="relative z-10 w-[80%] h-auto aspect-square bg-white/[0.03] backdrop-blur-3xl flex items-center justify-center border border-white/[0.05] shadow-[0_40px_100px_rgba(0,0,0,0.5)]"
                   style={{
                     borderRadius: "4px",
+                    overflow: "hidden", // Important to keep carousel inside the stage
                   }}
                 >
-                  {producto.imagenes && producto.imagenes.length > 0 ? (
-                    <div className="relative w-full h-full group">
-                      <Image 
-                        src={producto.imagenes[0]} 
-                        alt={producto.nombre}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-transform duration-700 ease-in-out group-hover:scale-110"
-                        priority
-                      />
-                      {/* Subtle reflection overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-30 pointer-events-none" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-6 opacity-30">
-                      <svg width="60" height="135" viewBox="0 0 40 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="14" y="2" width="12" height="14" rx="1" fill="var(--accent)" fillOpacity="0.8" />
-                        <rect x="12" y="16" width="16" height="4" rx="1" fill="var(--accent)" />
-                        <rect x="6" y="24" width="28" height="64" rx="4" stroke="currentColor" strokeWidth="1.5" strokeOpacity="1" fill="transparent" />
-                      </svg>
-                      <span className="text-[10px] tracking-[0.3em] uppercase font-mono">Sin Imagen</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Decorative info badge on image corner */}
-                <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-20 hidden sm:block">
-                  <span className="text-[8px] tracking-[0.4em] uppercase text-nd-text-disabled vertical-text opacity-40 font-mono">
-                    NADIRA_DECANTS © 2026
-                  </span>
+                  <ProductImageCarousel 
+                    imagenes={producto.imagenes} 
+                    nombre={producto.nombre} 
+                  />
                 </div>
               </div>
             </div>
