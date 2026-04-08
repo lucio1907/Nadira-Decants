@@ -10,9 +10,11 @@ interface Props {
   total: number;
   shippingInfo: ShippingInfo;
   shippingCost: number;
+  couponData?: { code: string; discount: number; couponId: string } | null;
 }
 
-export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost }: Props) => {
+export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponData }: Props) => {
+
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost }: Props)
     initMercadoPago(publicKey, { locale: "es-AR" });
 
     const fetchPreference = async () => {
-      const currentPayload = JSON.stringify({ cart, shippingInfo, shippingCost });
+      const currentPayload = JSON.stringify({ cart, shippingInfo, shippingCost, couponCode: couponData?.code });
       
       // Evitar re-fetch si los datos no cambiaron o si ya hay una petición en vuelo
       if (currentPayload === lastPayloadRef.current || isFetchingRef.current) return;
@@ -55,9 +57,11 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost }: Props)
             items: cart, 
             shippingInfo, 
             shippingCost, 
-            orderId: currentOrderIdRef.current 
+            orderId: currentOrderIdRef.current,
+            couponCode: couponData?.code 
           }),
         });
+
 
         const data = await res.json();
         
@@ -79,7 +83,8 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost }: Props)
     };
 
     fetchPreference();
-  }, [cart, shippingInfo, shippingCost]); // Solo re-ejecutar si cambian los inputs del usuario
+  }, [cart, shippingInfo, shippingCost, couponData]); // Solo re-ejecutar si cambian los inputs del usuario
+
 
   const handleSubmit = async (formData: any) => {
     setProcessing(true);
