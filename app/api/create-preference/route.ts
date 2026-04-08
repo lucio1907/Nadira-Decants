@@ -87,7 +87,8 @@ export const POST = async (request: NextRequest) => {
         cupon_id: cuponId,
         descuento: discount
       };
-
+      
+      // ... resto de la lógica de guardado de orden ...
       if (existingOrderId && !existingOrderId.startsWith('mock-')) {
         const { error: updateError } = await supabase
           .from("ordenes")

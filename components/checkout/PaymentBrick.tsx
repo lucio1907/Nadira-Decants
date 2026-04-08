@@ -43,7 +43,6 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
 
     const fetchPreference = async () => {
       const currentPayload = JSON.stringify({ cart, shippingInfo, shippingCost, couponCode: couponData?.code });
-
       // Evitar re-fetch si los datos no cambiaron o si ya hay una petición en vuelo
       if (currentPayload === lastPayloadRef.current || isFetchingRef.current) return;
 
@@ -90,7 +89,6 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
 
     fetchPreference();
   }, [cart, shippingInfo, shippingCost, couponData]); // Solo re-ejecutar si cambian los inputs del usuario
-
 
   const handleSubmit = async (brickResponse: any) => {
     const { formData, selectedPaymentMethod } = brickResponse;

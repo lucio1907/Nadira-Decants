@@ -472,7 +472,6 @@ Adjunto el comprobante de pago a continuación.`;
                   >
                     Método de pago
                   </h2>
-
                   <div className="grid grid-cols-2 gap-4 mb-8">
                     <button
                       onClick={() => setPaymentMethodMode("mp")}
@@ -589,7 +588,11 @@ Adjunto el comprobante de pago a continuación.`;
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       />
+<<<<<<< HEAD
                       <button
+=======
+                      <button 
+>>>>>>> d0ebe27 (feat: implement coupon system with validation logic, admin management interface, and integration into checkout and payment flows.)
                         onClick={handleApplyCoupon}
                         disabled={validadingCoupon || !couponCode}
                         className="nd-btn-primary"
@@ -606,7 +609,11 @@ Adjunto el comprobante de pago a continuación.`;
                       <span className="text-[9px] uppercase tracking-widest text-green-500 font-bold">Cupón Aplicado</span>
                       <span className="text-xs text-[var(--text-primary)]">{couponData.code}</span>
                     </div>
+<<<<<<< HEAD
                     <button
+=======
+                    <button 
+>>>>>>> d0ebe27 (feat: implement coupon system with validation logic, admin management interface, and integration into checkout and payment flows.)
                       onClick={removeCoupon}
                       className="text-[var(--text-disabled)] hover:text-red-500 transition-colors"
                     >
@@ -627,13 +634,18 @@ Adjunto el comprobante de pago a continuación.`;
 
               {discount > 0 && (
                 <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+<<<<<<< HEAD
                   <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento Cupón</span>
+=======
+                  <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento</span>
+>>>>>>> d0ebe27 (feat: implement coupon system with validation logic, admin management interface, and integration into checkout and payment flows.)
                   <span style={{ fontSize: "13px", color: "var(--success)" }}>
                     -${discount.toLocaleString("es-AR")}
                   </span>
                 </div>
               )}
 
+<<<<<<< HEAD
               {paymentMethodMode === 'transferencia' && transferDiscount > 0 && (
                 <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
                   <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento Transferencia (10%)</span>
@@ -643,6 +655,8 @@ Adjunto el comprobante de pago a continuación.`;
                 </div>
               )}
 
+=======
+>>>>>>> d0ebe27 (feat: implement coupon system with validation logic, admin management interface, and integration into checkout and payment flows.)
               <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
                 <span className="text-nd-label" style={{ fontSize: '9px' }}>Envío</span>
                 <span style={{ fontSize: "13px", color: shippingCost === 0 && shippingMethod === 'envio' ? 'var(--success)' : 'var(--text-primary)' }}>
