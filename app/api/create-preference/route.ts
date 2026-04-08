@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CartItem, ShippingInfo } from "@/types";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getMercadoPagoToken } from "@/lib/mercadopago-server";
+import { validateCoupon } from "@/lib/coupons";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -10,13 +11,16 @@ export const POST = async (request: NextRequest) => {
       items, 
       shippingInfo, 
       shippingCost,
-      orderId: existingOrderId // Recibir orderId si ya existe
+      orderId: existingOrderId,
+      couponCode
     }: { 
       items: CartItem[]; 
       shippingInfo: ShippingInfo; 
       shippingCost: number;
       orderId?: string;
+      couponCode?: string;
     } = await request.json();
+
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -41,7 +45,18 @@ export const POST = async (request: NextRequest) => {
       0
     );
 
-    const totalAmount = subtotal + (shippingCost || 0);
+    // Validar cupón si existe
+    let discount = 0;
+    let cuponId = null;
+    if (couponCode) {
+      const validation = await validateCoupon(couponCode, subtotal);
+      if (validation.valid) {
+        discount = validation.discount || 0;
+        cuponId = validation.coupon?.id;
+      }
+    }
+
+    const totalAmount = Math.max(0, subtotal - discount + (shippingCost || 0));
 
     // Create or Update order in Supabase
     let orderId = existingOrderId || `mock-order-${Date.now()}`;
@@ -49,7 +64,7 @@ export const POST = async (request: NextRequest) => {
     if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
       const supabase = await createAdminClient();
       
-      const orderPayload = {
+      const orderPayload: any = {
         items,
         total: totalAmount,
         status: "pending",
@@ -68,11 +83,13 @@ export const POST = async (request: NextRequest) => {
           cp: shippingInfo.codigoPostal,
           notas: shippingInfo.notas
         } : null,
-        shipping_cost: shippingCost || 0
+        shipping_cost: shippingCost || 0,
+        cupon_id: cuponId,
+        descuento: discount
       };
-
+      
+      // ... resto de la lógica de guardado de orden ...
       if (existingOrderId && !existingOrderId.startsWith('mock-')) {
-        // ACTUALIZAR ORDEN EXISTENTE
         const { error: updateError } = await supabase
           .from("ordenes")
           .update(orderPayload)
@@ -80,7 +97,6 @@ export const POST = async (request: NextRequest) => {
         
         if (updateError) {
           console.error("Supabase Update Error:", updateError);
-          // Si falla el update (vaya a saber por qué), intentamos insertar una nueva
           const { data: newData, error: insertError } = await supabase.from("ordenes").insert(orderPayload).select("id").single();
           if (insertError) throw insertError;
           orderId = newData.id;
@@ -88,7 +104,6 @@ export const POST = async (request: NextRequest) => {
           orderId = existingOrderId;
         }
       } else {
-        // INSERTAR NUEVA ORDEN
         const { data: orderData, error } = await supabase
           .from("ordenes")
           .insert(orderPayload)
@@ -99,7 +114,6 @@ export const POST = async (request: NextRequest) => {
           console.error("Supabase Insert Error:", error);
           throw error;
         }
-        
         orderId = orderData.id;
       }
     }
@@ -107,7 +121,6 @@ export const POST = async (request: NextRequest) => {
     const preference = new Preference(mpClient);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    // Prepare items for Mercado Pago
     const mpItems = items.map((item) => ({
       id: `${item.id}-${item.variante.ml}`,
       title: `${item.nombre} (${item.variante.ml}ml)`,
@@ -116,7 +129,16 @@ export const POST = async (request: NextRequest) => {
       currency_id: "ARS",
     }));
 
-    // Add shipping cost as a line item if applicable
+    if (discount > 0) {
+      mpItems.push({
+        id: "discount",
+        title: `Descuento Cupón (${couponCode})`,
+        unit_price: -discount,
+        quantity: 1,
+        currency_id: "ARS",
+      } as any);
+    }
+
     if (shippingCost && shippingCost > 0) {
       mpItems.push({
         id: "shipping_cost",
@@ -126,6 +148,7 @@ export const POST = async (request: NextRequest) => {
         currency_id: "ARS",
       } as any);
     }
+
 
     const result = await preference.create({
       body: {

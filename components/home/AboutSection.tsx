@@ -33,7 +33,7 @@ export const AboutSection = () => {
                 <p>
                   Utilizamos solo atomizadores de vidrio de alta calidad y técnicas de decantado precisas que preservan la integridad de cada nota olfativa, directamente desde el frasco original hacia tu colección.
                 </p>
-                
+
                 <div className="pt-8 flex flex-col sm:flex-row gap-6">
                   <div className="flex-1">
                     <h4 className="text-nd-label mb-2" style={{ color: "var(--accent)" }}>Autenticidad</h4>
@@ -63,14 +63,14 @@ export const AboutSection = () => {
                 {/* Subtle overlay for luxury feel */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--black)]/40 to-transparent pointer-events-none" />
               </div>
-              
+
               {/* Floating decorative element */}
-              <div 
-                className="absolute -bottom-6 -right-6 w-32 h-32 hidden lg:block border-[0.5px] border-[var(--accent)]/30 pointer-events-none" 
+              <div
+                className="absolute -bottom-6 -right-6 w-32 h-32 hidden lg:block border-[0.5px] border-[var(--accent)]/30 pointer-events-none"
                 style={{ zIndex: -1 }}
               />
-               <div 
-                className="absolute -top-6 -left-6 w-32 h-32 hidden lg:block border-[0.5px] border-[var(--accent)]/30 pointer-events-none" 
+              <div
+                className="absolute -top-6 -left-6 w-32 h-32 hidden lg:block border-[0.5px] border-[var(--accent)]/30 pointer-events-none"
                 style={{ zIndex: -1 }}
               />
             </ScrollReveal>

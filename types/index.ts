@@ -47,6 +47,19 @@ export interface ShippingInfo {
   notas?: string;
 }
 
+export interface Coupon {
+  id: string;
+  codigo: string;
+  tipo: "porcentaje" | "fijo";
+  valor: number;
+  minimo_compra?: number;
+  expiracion?: Date;
+  usos_maximos?: number;
+  usos_actuales: number;
+  activo: boolean;
+  created_at: Date;
+}
+
 export interface Order {
   id?: string;
   items: CartItem[];
@@ -60,7 +73,10 @@ export interface Order {
   clienteTelefono?: string;
   direccionEnvio?: Partial<ShippingInfo>;
   shippingCost?: number;
+  cupon_id?: string;
+  descuento?: number;
   createdAt: Date;
   updatedAt?: Date;
   trackingNumber?: string;
 }
+

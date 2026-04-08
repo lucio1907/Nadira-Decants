@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ShippingInfo } from "@/types";
 import { calculateShipping } from "@/lib/shipping";
+import { X } from "lucide-react";
 
 const PaymentBrick = dynamic(
   () =>
@@ -46,22 +47,63 @@ const CheckoutPage = () => {
     notas: "",
   });
 
+  const [couponCode, setCouponCode] = useState("");
+  const [validadingCoupon, setValidatingCoupon] = useState(false);
+  const [couponData, setCouponData] = useState<{ code: string; discount: number; couponId: string } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const subtotal = useMemo(() => getTotal(), [items, getTotal]);
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setValidatingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, subtotal }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Cupón inválido");
+      }
+      setCouponData({
+        code: data.coupon.codigo,
+        discount: data.discount,
+        couponId: data.coupon.id,
+      });
+    } catch (err: any) {
+      setCouponError(err.message);
+      setCouponData(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponData(null);
+    setCouponCode("");
+  };
+
+  const discount = couponData?.discount || 0;
+
   const shippingCost = useMemo(() => {
     if (shippingMethod === "retiro") return 0;
     return calculateShipping(
       shippingInfo.codigoPostal || "",
       shippingInfo.provincia || "",
-      subtotal
+      subtotal - discount // Aplicar descuento al subtotal para el cálculo de envío si afecta el umbral
     );
-  }, [shippingMethod, shippingInfo.codigoPostal, shippingInfo.provincia, subtotal]);
+  }, [shippingMethod, shippingInfo.codigoPostal, shippingInfo.provincia, subtotal, discount]);
 
-  const total = subtotal + shippingCost;
+  const total = Math.max(0, subtotal - discount + shippingCost);
+
 
   const isFormValid = useMemo(() => {
     if (shippingMethod === "retiro") {
@@ -380,8 +422,15 @@ const CheckoutPage = () => {
                   >
                     Método de pago
                   </h2>
-                  <PaymentBrick cart={items} total={total} shippingInfo={shippingInfo} shippingCost={shippingCost} />
+                  <PaymentBrick 
+                    cart={items} 
+                    total={total} 
+                    shippingInfo={shippingInfo} 
+                    shippingCost={shippingCost} 
+                    couponData={couponData}
+                  />
                 </div>
+
               </div>
             )}
           </div>
@@ -427,6 +476,45 @@ const CheckoutPage = () => {
                 ))}
               </div>
 
+              <div style={{ marginBottom: "var(--space-md)" }}>
+                {!couponData ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="CÓDIGO DE CUPÓN"
+                        className="nd-input flex-1 uppercase"
+                        style={{ fontSize: '11px', padding: '8px 12px' }}
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      />
+                      <button 
+                        onClick={handleApplyCoupon}
+                        disabled={validadingCoupon || !couponCode}
+                        className="nd-btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '10px' }}
+                      >
+                        {validadingCoupon ? "..." : "Aplicar"}
+                      </button>
+                    </div>
+                    {couponError && <p className="text-[10px] text-red-500 font-body">{couponError}</p>}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-green-500/5 border border-green-500/20">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] uppercase tracking-widest text-green-500 font-bold">Cupón Aplicado</span>
+                      <span className="text-xs text-[var(--text-primary)]">{couponData.code}</span>
+                    </div>
+                    <button 
+                      onClick={removeCoupon}
+                      className="text-[var(--text-disabled)] hover:text-red-500 transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="nd-divider" style={{ marginBottom: "var(--space-md)" }} />
 
               <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
@@ -436,12 +524,22 @@ const CheckoutPage = () => {
                 </span>
               </div>
 
+              {discount > 0 && (
+                <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+                  <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento</span>
+                  <span style={{ fontSize: "13px", color: "var(--success)" }}>
+                    -${discount.toLocaleString("es-AR")}
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
                 <span className="text-nd-label" style={{ fontSize: '9px' }}>Envío</span>
                 <span style={{ fontSize: "13px", color: shippingCost === 0 && shippingMethod === 'envio' ? 'var(--success)' : 'var(--text-primary)' }}>
                   {shippingMethod === 'retiro' ? 'Gratis (Retiro)' : shippingCost === 0 ? 'Gratis' : `$${shippingCost.toLocaleString("es-AR")}`}
                 </span>
               </div>
+
 
               <div className="nd-divider-visible" style={{ height: '1px', marginBottom: "var(--space-md)" }} />
 
