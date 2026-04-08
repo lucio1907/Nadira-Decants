@@ -39,9 +39,9 @@ export const Footer = () => {
       { label: "Preguntas Frecuentes", href: "/#faq" },
     ],
     social: [
-      { label: "Instagram", href: "https://instagram.com/nadiradecants", icon: InstagramIcon },
-      { label: "TikTok", href: "https://tiktok.com/@nadiradecants", icon: TikTokIcon },
-      { label: "Facebook", href: "https://facebook.com/nadiradecants", icon: FacebookIcon },
+      { label: "Instagram", href: "https://www.instagram.com/nadiradecants.baradero/", icon: InstagramIcon },
+      { label: "TikTok", href: "https://www.tiktok.com/@nadira.decants", icon: TikTokIcon },
+      { label: "Facebook", href: "https://www.facebook.com/nadiradecants.baradero", icon: FacebookIcon },
     ]
   };
 

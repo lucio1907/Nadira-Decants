@@ -297,8 +297,8 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
       ) : (
         /* Table View */
         <div className="nd-card !p-0 overflow-hidden border border-[var(--border)]">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto selection:bg-[var(--accent)]/30">
+            <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-full">
               <thead>
                 <tr className="bg-[var(--surface-raised)] border-bottom border-[var(--border)]">
                   <th className="px-6 py-4 text-nd-label text-[10px]">Producto</th>

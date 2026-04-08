@@ -169,7 +169,7 @@ Email: ${order.payerEmail}
   return (
     <div className="space-y-8 pb-20">
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-xl space-y-2">
           <div className="flex items-center justify-between text-[var(--text-secondary)]">
             <span className="text-xs font-body uppercase tracking-[0.2em]">Ventas Totales</span>
@@ -216,7 +216,7 @@ Email: ${order.payerEmail}
       </div>
 
       {/* Filters & Actions */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="flex flex-col xl:flex-row gap-4 xl:items-center justify-between">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
           <input 
@@ -228,7 +228,7 @@ Email: ${order.payerEmail}
           />
         </div>
         
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto w-full xl:w-auto pb-2 xl:pb-0 scrollbar-hide">
           {["all", "pending", "approved", "shipped", "delivered", "rejected"].map((s) => (
             <button
               key={s}
@@ -247,8 +247,8 @@ Email: ${order.payerEmail}
 
       {/* Orders Table */}
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto selection:bg-[var(--accent)]/30">
+          <table className="w-full text-left border-collapse min-w-[1000px] lg:min-w-full">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[rgba(255,255,255,0.02)]">
                 <th className="px-6 py-4 text-[10px] font-body uppercase tracking-widest text-[var(--text-secondary)]">ID Orden</th>
@@ -355,8 +355,8 @@ Email: ${order.payerEmail}
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-10">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 {/* Column 1: Client Info */}
                 <div className="space-y-6">
                   <div className="space-y-4">
@@ -418,7 +418,7 @@ Email: ${order.payerEmail}
                 </div>
 
                 {/* Column 2: Order Summary & Shipment */}
-                <div className="md:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-8">
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-body tracking-[0.2em] uppercase text-[var(--text-secondary)] border-b border-[var(--border)] pb-2">Items del Pedido</h3>
                     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
@@ -464,7 +464,7 @@ Email: ${order.payerEmail}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div className="space-y-4">
                       <h3 className="text-[10px] font-body tracking-[0.2em] uppercase text-[var(--text-secondary)] border-b border-[var(--border)] pb-2">Entrega</h3>
                       <div className="flex items-start gap-3">
