@@ -12,22 +12,23 @@
   --font-mono: var(--font-body, "Inter", sans-serif);
 
   /* — Colors (Dark Mode — default) — */
-  --color-nd-black: #0A0A0A;
-  --color-nd-surface: #141414;
-  --color-nd-surface-raised: #1C1C1C;
-  --color-nd-border: #2A2A2A;
-  --color-nd-border-visible: #3D3D3D;
-  --color-nd-text-disabled: #666666;
-  --color-nd-text-secondary: #A3A3A3;
-  --color-nd-text-primary: #E5E5E5;
-  --color-nd-text-display: #FAFAFA;
+  --color-nd-black: #182633;
+  --color-nd-surface: #1e2f3f;
+  --color-nd-surface-raised: #253b4e;
+  --color-nd-border: rgba(255, 255, 255, 0.08);
+  --color-nd-border-visible: rgba(255, 255, 255, 0.15);
+  --color-nd-text-disabled: #718096;
+  --color-nd-text-secondary: #A0AEC0;
+  --color-nd-text-primary: #E2E8F0;
+  --color-nd-text-display: #FFFFFF;
 
   /* — Accent & Status — */
-  --color-nd-accent: #C3A36D;
-  --color-nd-accent-subtle: rgba(195, 163, 109, 0.15);
+  --color-nd-accent: #d3b000;
+  --color-nd-accent-hover: #ffde59;
+  --color-nd-accent-subtle: rgba(211, 176, 0, 0.15);
   --color-nd-success: #4A9E5C;
-  --color-nd-warning: #C3A36D;
-  --color-nd-interactive: #C3A36D;
+  --color-nd-warning: #d3b000;
+  --color-nd-interactive: #d3b000;
 
   /* — Spacing Scale — */
   --space-2xs: 4px;
@@ -43,20 +44,21 @@
 
 :root {
   /* Dark mode (default) */
-  --black: #0A0A0A;
-  --surface: #121212;
-  --surface-raised: #1A1A1A;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-visible: rgba(255, 255, 255, 0.12);
-  --text-disabled: #555555;
-  --text-secondary: #999999;
-  --text-primary: #CCCCCC;
+  --black: #182633;
+  --surface: #1e2f3f;
+  --surface-raised: #253b4e;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-visible: rgba(255, 255, 255, 0.15);
+  --text-disabled: #718096;
+  --text-secondary: #A0AEC0;
+  --text-primary: #E2E8F0;
   --text-display: #FFFFFF;
-  --accent: #C3A36D;
-  --accent-subtle: rgba(195, 163, 109, 0.15);
+  --accent: #d3b000;
+  --accent-hover: #ffde59;
+  --accent-subtle: rgba(211, 176, 0, 0.15);
   --success: #4A9E5C;
-  --warning: #C3A36D;
-  --interactive: #C3A36D;
+  --warning: #d3b000;
+  --interactive: #d3b000;
 
   /* Type Scale */
   --display-xl: 64px;
@@ -77,18 +79,18 @@
 }
 
 [data-theme="light"] {
-  --black: #FAFAFA;
+  --black: #F8FAFC;
   --surface: #FFFFFF;
-  --surface-raised: #F5F5F5;
+  --surface-raised: #F1F5F9;
   --border: rgba(0, 0, 0, 0.05);
   --border-visible: rgba(0, 0, 0, 0.08);
-  --text-disabled: #AAAAAA;
-  --text-secondary: #666666;
-  --text-primary: #333333;
-  --text-display: #111111;
-  --interactive: #BCA37F;
-  --accent: #BCA37F;
-  --accent-subtle: rgba(188, 163, 127, 0.15);
+  --text-disabled: #94A3B8;
+  --text-secondary: #475569;
+  --text-primary: #1e293b;
+  --text-display: #0f172a;
+  --interactive: #d3b000;
+  --accent: #d3b000;
+  --accent-subtle: rgba(211, 176, 0, 0.1);
 }
 
 * {
@@ -243,8 +245,8 @@ input[type="reset"] {
 }
 
 .nd-btn-primary:hover {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent-hover);
+  color: var(--black);
   transform: translateY(-1px);
 }
 

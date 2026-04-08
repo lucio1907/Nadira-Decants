@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package2, Settings, Menu, X, ShoppingCart } from "lucide-react";
+import { LogOut, Package2, Settings, Menu, X, ShoppingCart, ExternalLink, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     await logoutAdmin();
     router.push("/admin/login");
   };
-
   const navItems = [
+    { name: "Estadísticas", href: "/admin/estadisticas", icon: BarChart3 },
     { name: "Productos", href: "/admin/productos", icon: Package2 },
     { name: "Ordenes", href: "/admin/ordenes", icon: ShoppingCart },
     // { name: "Ajustes", href: "/admin/ajustes", icon: Settings },
@@ -38,11 +38,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={`
-        ${isMobileMenuOpen ? 'flex' : 'hidden'} 
-        md:flex flex-col w-full md:w-64 border-r border-[var(--border)] bg-[var(--surface)]
+        ${isMobileMenuOpen ? 'fixed inset-0 z-50 flex' : 'hidden'} 
+        md:fixed md:inset-y-0 md:left-0 md:z-10 md:flex flex-col w-full md:w-64 border-r border-[var(--border)] bg-[var(--surface)]
       `}>
-        <div className="hidden md:flex p-6 border-b border-[var(--border)]">
-          <span className="text-heading font-display">Nadira</span>
+        <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
+          <Link href="/admin/productos" className="text-heading font-display">Nadira</Link>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         <nav className="flex-1 py-4">
@@ -71,19 +77,27 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-[var(--border)]">
+        <div className="p-4 border-t border-[var(--border)] flex flex-col gap-1">
+          <Link 
+            href="/"
+            target="_blank"
+            className="flex items-center gap-3 px-2 py-3 w-full text-left text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors group"
+          >
+            <ExternalLink size={20} className="group-hover:text-[var(--accent)] transition-colors" />
+            <span className="font-body text-xs uppercase tracking-widest">Ir a la web</span>
+          </Link>
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-3 px-2 py-2 w-full text-left text-[var(--text-secondary)] hover:text-[#D71921] transition-colors"
+            className="flex items-center gap-3 px-2 py-3 w-full text-left text-[var(--text-secondary)] hover:text-[#D71921] transition-colors group"
           >
             <LogOut size={20} />
-            <span className="font-body text-sm uppercase tracking-widest">Salir</span>
+            <span className="font-body text-xs uppercase tracking-widest">Salir</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full bg-[var(--black)]">
+      <main className="flex-1 md:ml-64 p-4 md:p-8 w-full bg-[var(--black)]">
         {children}
       </main>
     </div>

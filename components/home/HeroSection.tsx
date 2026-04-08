@@ -125,24 +125,24 @@ export const HeroSection = () => {
               src="/images/hero_perfume_v5.png"
               alt="Luxury Perfume Bottle"
               fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(min-width: 1024px) 540px, 1px"
               className="object-contain"
               priority
             />
           </div>
         </div>
+      </div>
 
-        {/* MOBILE IMAGE OVERLAY (Subtle) */}
-        <div className="absolute inset-0 lg:hidden z-[-1] opacity-30">
-          <Image
-            src="/images/hero_perfume_v5.png"
-            alt="Luxury Perfume Bottle Background"
-            fill
-            sizes="100vw"
-            className="object-cover object-center scale-110 blur-[10px]"
-            priority
-          />
-        </div>
+      {/* MOBILE IMAGE OVERLAY (Subtle) - Moved outside container for true 100vw */}
+      <div className="absolute inset-0 lg:hidden z-[-1] opacity-30 pointer-events-none">
+        <Image
+          src="/images/hero_perfume_v5.png"
+          alt="Luxury Perfume Bottle Background"
+          fill
+          sizes="(max-width: 1024px) 100vw, 1px"
+          className="object-cover object-center scale-110 blur-[10px]"
+          priority
+        />
       </div>
 
       {/* Scroll indicator - elegant vertical line */}

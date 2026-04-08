@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AlertProvider } from "@/hooks/useAlert";
+
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -65,8 +67,11 @@ export default function RootLayout({
           `}
         </Script>
         <ThemeProvider>
-          {children}
+          <AlertProvider>
+            {children}
+          </AlertProvider>
         </ThemeProvider>
+
       </body>
     </html>
   );

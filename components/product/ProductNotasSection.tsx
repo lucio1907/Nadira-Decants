@@ -34,10 +34,9 @@ const notaGroups = [
 export const ProductNotasSection = ({ notas }: Props) => {
   return (
     <section
-      className="transition-colors duration-500 ease-in-out"
+      className="transition-colors duration-500 ease-in-out py-16 md:py-24 lg:py-32"
       style={{
         background: "var(--surface)",
-        padding: "var(--space-4xl) 0",
       }}
     >
       <div className="container-nd max-w-4xl mx-auto">

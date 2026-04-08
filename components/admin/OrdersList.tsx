@@ -22,6 +22,8 @@ import {
   TrendingUp,
   AlertCircle
 } from "lucide-react";
+import { useAlert } from "@/hooks/useAlert";
+
 
 interface OrdersListProps {
   initialOrders: Order[];
@@ -35,6 +37,8 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [trackingInput, setTrackingInput] = useState("");
+  const { showAlert } = useAlert();
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -90,13 +94,14 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
           setSelectedOrder({ ...selectedOrder, status: newStatus, trackingNumber: trackingInput });
         }
       } else {
-        const errorData = await res.json();
-        alert(`Error al actualizar estado: ${errorData.error || "Error desconocido"}`);
+        const errorData = await res.json().catch(() => ({}));
+        showAlert(`Error al actualizar estado: ${errorData.error || "Error desconocido"}`, { type: "error" });
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Error de conexión al intentar actualizar el estado.");
+      showAlert("Error de conexión al intentar actualizar el estado.", { type: "error" });
     } finally {
+
       setIsLoading(false);
     }
   };
@@ -157,8 +162,9 @@ Email: ${order.payerEmail}
 `.trim();
     
     navigator.clipboard.writeText(info);
-    alert("Datos de envío copiados al portapapeles ✅");
+    showAlert("Datos de envío copiados al portapapeles ✅", { type: "success" });
   };
+
 
   return (
     <div className="space-y-8 pb-20">

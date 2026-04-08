@@ -5,14 +5,19 @@ import { Edit2, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAlert } from "@/hooks/useAlert";
+
 
 export default function ProductsList({ initialProducts }: { initialProducts: Producto[] }) {
   const [products, setProducts] = useState<Producto[]>(initialProducts);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
+  const { showAlert, showConfirm } = useAlert();
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de eliminar este producto?")) return;
+    const confirmed = await showConfirm("¿Estás seguro de eliminar este producto?", { isDestructive: true });
+    if (!confirmed) return;
+
     
     setDeletingId(id);
     try {
@@ -20,15 +25,17 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
       if (res.ok) {
         setProducts(products.filter(p => p.id !== id));
         router.refresh();
+        await showAlert("El producto ha sido eliminado correctamente.", { type: "success" });
       } else {
-        alert("Error al eliminar");
+        await showAlert("Error al eliminar el producto.", { type: "error" });
       }
     } catch (e) {
-      alert("Error al eliminar");
+      await showAlert("Error de red al intentar eliminar el producto.", { type: "error" });
     } finally {
       setDeletingId(null);
     }
   };
+
 
   return (
     <div>
