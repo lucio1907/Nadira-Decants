@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export const PUT = async (request: Request, context: { params: Promise<{ id: string }> }) => {
@@ -51,6 +51,12 @@ export const PUT = async (request: Request, context: { params: Promise<{ id: str
       if (insertVariantesError) throw insertVariantesError;
     }
 
+    // Revalidate paths to update the UI
+    revalidateTag("productos", "max");
+    revalidatePath("/", "page");
+    revalidatePath("/admin/productos", "page");
+    revalidatePath(`/producto/${productData.slug}`, "page");
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating product:", error);
@@ -72,6 +78,11 @@ export const DELETE = async (request: Request, context: { params: Promise<{ id: 
       .eq("id", id);
       
     if (error) throw error;
+
+    // Revalidate paths
+    revalidateTag("productos", "max");
+    revalidatePath("/", "page");
+    revalidatePath("/admin/productos", "page");
 
     return NextResponse.json({ success: true });
   } catch (error) {

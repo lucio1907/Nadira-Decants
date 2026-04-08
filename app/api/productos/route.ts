@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 
 import { getProductsServer } from "@/lib/products-server";
@@ -53,6 +54,11 @@ export const POST = async (request: Request) => {
         throw variantesError;
       }
     }
+
+    // Revalidate paths that show this new product
+    revalidateTag("productos", "max");
+    revalidatePath("/", "page");
+    revalidatePath("/admin/productos", "page");
 
     return NextResponse.json({ id: newProduct.id, ...data });
   } catch (error) {
