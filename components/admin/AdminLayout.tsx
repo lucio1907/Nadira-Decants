@@ -97,7 +97,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8 w-full bg-[var(--black)]">
+      <main className="flex-1 md:ml-64 p-4 md:p-8 min-w-0 bg-[var(--black)]">
         {children}
       </main>
     </div>
