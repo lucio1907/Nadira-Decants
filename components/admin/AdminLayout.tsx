@@ -52,15 +52,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[var(--black)] flex flex-col md:flex-row">
       {/* Top Progress Bar */}
       {isPending && (
-        <div 
-          className="nd-progress-bar" 
-          style={{ 
+        <div
+          className="nd-progress-bar"
+          style={{
             width: `${progress}%`,
-            transition: 'width 0.4s ease-out' 
-          }} 
+            transition: 'width 0.4s ease-out'
+          }}
         />
       )}
-      
+
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">
         <span className="text-heading font-display">Nadira Admin</span>
