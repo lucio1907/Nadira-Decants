@@ -12,6 +12,7 @@
     "@mercadopago/sdk-react": "^1.0.7",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
+    "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "lucide-react": "^1.7.0",
     "mercadopago": "^2.12.0",

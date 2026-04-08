@@ -10,6 +10,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    // Límite de seguridad en el servidor: 2MB
+    const MAX_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: "El archivo excede el límite de 2MB" }, { status: 400 });
+    }
+
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       // Mock mode or not configured
       console.log("Mock upload requested:", file.name);

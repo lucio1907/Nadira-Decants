@@ -38,7 +38,7 @@ const ProductoPage = async ({
   if (!producto) notFound();
 
   return (
-    <div style={{ paddingTop: "80px" }}>
+    <div className="pt-20 lg:pt-24">
       {/* Breadcrumb */}
       <div
         style={{
@@ -84,26 +84,24 @@ const ProductoPage = async ({
       <section
         style={{
           background: "var(--black)",
-          padding: "var(--space-2xl) 0 var(--space-3xl)",
           transition: "background-color 350ms cubic-bezier(0.25, 0.1, 0.25, 1)",
         }}
+        className="py-8 md:py-16 lg:py-24"
       >
         <div className="container-nd">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-16">
             {/* Product Image Section */}
-            <div className="nd-animate-fade-in">
+            <div className="nd-animate-fade-in w-full">
               <div
-                className="sticky"
+                className="relative static lg:sticky lg:aspect-[1/1.1] py-12 lg:py-0"
                 style={{
-                  top: "72px",
-                  aspectRatio: "1 / 1.1",
+                  top: "100px",
                   background: "var(--surface-raised)",
                   borderRadius: "2px",
                   border: "1px solid var(--border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  position: "relative",
                   overflow: "hidden",
                   transition: "all 400ms ease",
                 }}
@@ -122,7 +120,7 @@ const ProductoPage = async ({
 
                 {/* The "Stage" or frame for the image */}
                 <div 
-                  className="relative z-10 w-[85%] h-[85%] bg-white/[0.03] backdrop-blur-3xl flex items-center justify-center p-8 border border-white/[0.05] shadow-[0_40px_100px_rgba(0,0,0,0.5)]"
+                  className="relative z-10 w-[80%] h-auto aspect-square bg-white/[0.03] backdrop-blur-3xl flex items-center justify-center p-6 md:p-8 border border-white/[0.05] shadow-[0_40px_100px_rgba(0,0,0,0.5)]"
                   style={{
                     borderRadius: "4px",
                   }}
@@ -153,7 +151,7 @@ const ProductoPage = async ({
                 </div>
 
                 {/* Decorative info badge on image corner */}
-                <div className="absolute bottom-10 right-10 z-20">
+                <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-20 hidden sm:block">
                   <span className="text-[8px] tracking-[0.4em] uppercase text-nd-text-disabled vertical-text opacity-40 font-mono">
                     NADIRA_DECANTS © 2026
                   </span>
@@ -162,7 +160,7 @@ const ProductoPage = async ({
             </div>
 
             {/* Product Info */}
-            <div className="nd-animate-fade-in-up">
+            <div className="nd-animate-fade-in-up w-full">
               {/* Brand */}
               <p
                 className="text-nd-label"
@@ -176,9 +174,9 @@ const ProductoPage = async ({
 
               {/* Name */}
               <h1
+                className="text-display-lg lg:text-display-xl"
                 style={{
                   fontFamily: "var(--font-body)",
-                  fontSize: "clamp(2rem, 5vw, var(--display-lg))",
                   fontWeight: 500,
                   lineHeight: 1.05,
                   letterSpacing: "-0.02em",

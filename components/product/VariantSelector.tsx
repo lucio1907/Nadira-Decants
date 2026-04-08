@@ -69,15 +69,14 @@ export const VariantSelector = ({
             key={v.ml}
             onClick={() => setSelected(v)}
             disabled={v.stock === 0}
-            className={`nd-segment overflow-hidden transition-all duration-300 ease-in-out ${
+            className={`nd-segment overflow-hidden transition-all duration-300 ease-in-out py-3 px-4 md:py-4 md:px-6 ${
               selected.ml === v.ml ? "nd-segment-active" : ""
             } ${v.stock === 0 ? "nd-segment-disabled opacity-50 grayscale" : ""}`}
             style={{
               flexDirection: "column",
               gap: "4px",
-              padding: "16px 24px",
               position: "relative",
-              borderRadius: "4px", // More refined rectangular feel for sizes
+              borderRadius: "4px",
             }}
             id={`variant-${v.ml}ml`}
           >
@@ -133,7 +132,7 @@ export const VariantSelector = ({
       {/* Price display */}
       <div style={{ marginBottom: "var(--space-xl)" }}>
         <span
-          className="text-[48px] md:text-[56px]"
+          className="text-[32px] sm:text-[40px] md:text-[56px]"
           style={{
             fontFamily: "var(--font-display)",
             lineHeight: 1,
