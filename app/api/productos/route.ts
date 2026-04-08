@@ -15,6 +15,16 @@ export const POST = async (request: Request) => {
     const data = await request.json();
     const { id, variantes, ...productData } = data; // remove id if sent
 
+    // Backend validation
+    if (!variantes || variantes.length === 0) {
+      return NextResponse.json({ error: "El producto debe tener al menos una variante." }, { status: 400 });
+    }
+
+    const hasInvalidPrice = variantes.some((v: any) => Number(v.precio) <= 0);
+    if (hasInvalidPrice) {
+      return NextResponse.json({ error: "Todas las variantes deben tener un precio mayor a 0." }, { status: 400 });
+    }
+
     const supabase = await createAdminClient();
     
     const { data: newProduct, error: productError } = await supabase
@@ -59,6 +69,7 @@ export const POST = async (request: Request) => {
     revalidateTag("productos", "max");
     revalidatePath("/", "page");
     revalidatePath("/admin/productos", "page");
+    revalidatePath("/admin/productos");
 
     return NextResponse.json({ id: newProduct.id, ...data });
   } catch (error) {

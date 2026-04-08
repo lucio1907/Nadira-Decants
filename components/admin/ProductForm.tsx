@@ -58,7 +58,21 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
 
   // Basic Fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Capitalizar primera letra si es nombre o descripción
+    if ((name === "nombre" || name === "descripcion") && value.length > 0) {
+      value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    // Capitalizar cada palabra en la marca (estilo Carolina Herrera)
+    if (name === "marca" && value.length > 0) {
+      value = value
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
     setFormData((prev: FormProductData) => ({
       ...prev,
       [name]: value,
@@ -192,9 +206,23 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
       const url = isEdit ? `/api/productos/${initialData?.id}` : `/api/productos`;
       const method = isEdit ? "PUT" : "POST";
 
+      // Validación: Al menos una variante
+      if (formData.variantes.length === 0) {
+        showAlert("Debes agregar al menos una variante.", { type: "warning" });
+        setLoading(false);
+        return;
+      }
+
+      // Validación: Precios mayores a 0
+      const hasInvalidPrice = formData.variantes.some(v => Number(v.precio) <= 0);
+      if (hasInvalidPrice) {
+        showAlert("Todas las variantes deben tener un precio mayor a 0.", { type: "warning" });
+        setLoading(false);
+        return;
+      }
+
       // Asegurar que los valores numéricos de las variantes sean números antes de enviar
       const sanitizedVariantes = formData.variantes.map((v) => ({
-        ...v,
         ...v,
         ml: Number(v.ml) || 0,
         precio: Number(v.precio) || 0,
@@ -216,8 +244,10 @@ export function ProductForm({ initialData, isEdit = false }: { initialData?: Pro
       });
 
       if (res.ok) {
+        // En Next.js, router.push a una página ya visitada puede usar el caché del cliente.
+        // Llamamos a refresh() antes o después para asegurar que el servidor mande datos nuevos.
         router.push("/admin/productos");
-        router.refresh();
+        router.refresh(); 
       } else {
         const errorData = await res.json().catch(() => ({}));
         showAlert(`Error al guardar el producto: ${errorData.error || "Error desconocido"}`, { type: "error" });
