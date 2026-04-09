@@ -109,6 +109,13 @@ const ProductoPage = async ({
                   borderRight: "1px solid rgba(211, 176, 0, 0.2)",
                 }}
               />
+              
+              {/* Background Grid Lines from Incoming */}
+              <div className="absolute inset-0 nd-pattern-grid opacity-[0.05] hidden md:block" />
+              
+              {/* Subtle accent lines */}
+              <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent hidden md:block" />
+              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent hidden md:block" />
 
               <div
                 className="relative w-full aspect-[4/5] sm:aspect-square flex items-center justify-center overflow-hidden"
@@ -262,7 +269,7 @@ const ProductoPage = async ({
 
               {/* Trust Badges — refined layout */}
               <div className="nd-delay-4 nd-animate-fade-in-up mt-10 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
-                {/* Main guarantee — same style as secondary badges */}
+                {/* Main guarantee — using updated copy from Incoming */}
                 <div className="flex items-center gap-4 py-5 px-5 mb-3 rounded-lg transition-all duration-300 hover:bg-white/[0.03] group" style={{ border: "1px solid var(--border)" }}>
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(211,176,0,0.15)]"
@@ -279,7 +286,7 @@ const ProductoPage = async ({
                       Garantía 100% Original
                     </p>
                     <p className="text-[11px] mt-0.5" style={{ color: "var(--text-disabled)" }}>
-                      Cada gota proviene del frasco de autor
+                      Cada gota proviene directamente del frasco de autor. Autenticidad certificada.
                     </p>
                   </div>
                 </div>

@@ -131,16 +131,6 @@ export const HeroSection = () => {
               transition: "width 1.2s cubic-bezier(0.16, 1, 0.3, 1) 300ms",
             }}
           >
-            <div
-              className="h-[1px]"
-              style={{
-                background: "linear-gradient(90deg, var(--accent) 60%, transparent)",
-                opacity: phase >= 3 ? 0.5 : 0,
-                transition: "opacity 1s ease 400ms",
-              }}
-            />
-          </div>
-
           {/* Subtitle */}
           <p
             className="mb-10 lg:text-subheading font-light max-w-sm"
