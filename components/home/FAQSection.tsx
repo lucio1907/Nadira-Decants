@@ -12,27 +12,27 @@ interface FAQItem {
 const faqs: FAQItem[] = [
   {
     question: "¿Qué es un decant?",
-    answer: "Un decant es una porción de un perfume original que se trasvasa de su frasco original a un atomizador más pequeño (2ml, 5ml o 10ml). Es la forma ideal de probar una fragancia de lujo antes de comprar el frasco completo.",
+    answer: "Es una porción de un perfume original, fraccionada en un envase más chico. Permite probar la fragancia antes de decidir si querés comprar el frasco completo.",
   },
   {
     question: "¿Los perfumes son originales?",
-    answer: "Sí, absolutamente. En Nadira garantizamos que cada decant proviene 100% de frascos originales y auténticos. No utilizamos réplicas ni imitaciones bajo ninguna circunstancia.",
+    answer: "Sí. Todos los decants provienen de frascos originales. No hay mezclas ni imitaciones: probás el perfume tal como es.",
   },
   {
     question: "¿Qué tamaños ofrecen?",
-    answer: "Ofrecemos presentaciones de 2ml (aprox. 30 atomizaciones), 5ml (aprox. 75 atomizaciones) y 10ml (aprox. 150 atomizaciones), todos en envases de vidrio con atomizador de alta calidad.",
+    answer: "Actualmente los decants son de 5 ml, un formato ideal para probar el perfume y conocerlo bien antes de invertir en el tamaño completo.",
   },
   {
     question: "¿Cómo se preparan los decants?",
-    answer: "Cada decant se prepara de forma artesanal y bajo pedido, utilizando herramientas de precisión para asegurar que la fragancia mantenga todas sus propiedades y notas originales sin contaminación externa.",
+    answer: "Se fraccionan con cuidado directamente desde el frasco original, utilizando atomizadores de vidrio prácticos y de buena calidad.",
   },
   {
     question: "¿Hacen envíos a todo el país?",
-    answer: "Sí, realizamos envíos a toda la Argentina a través de Correo Argentino. También ofrecemos opciones de retiro en puntos de entrega seleccionados en nuestra zona.",
+    answer: "Sí, realizo envíos a todo el país a través de correo Argentino. El costo y el tiempo de entrega se calculan al momento de la compra.",
   },
   {
     question: "¿Cuáles son los medios de pago?",
-    answer: "Aceptamos todas las tarjetas de crédito y débito a través de Mercado Pago, transferencia bancaria con descuento y efectivo para retiros personales.",
+    answer: "Podés pagar de forma segura a través de plataformas online, como Mercado Pago, transferencia bancaria 10 % descuento.",
   },
 ];
 
@@ -56,7 +56,7 @@ export const FAQSection = () => {
         <SectionHeading
           tag="Preguntas frecuentes"
           title="Resolvemos tus dudas"
-          subtitle="Todo lo que necesitás saber sobre la experiencia Nadira y nuestros decants."
+          subtitle="Respuestas claras para que elijas con seguridad."
         />
 
         <div className="mt-12 space-y-4">
