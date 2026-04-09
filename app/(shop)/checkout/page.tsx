@@ -76,7 +76,6 @@ const CheckoutPage = () => {
         discount: data.discount!,
         couponId: data.coupon!.id,
       });
-      });
     } catch (err: any) {
       setCouponError(err.message);
       setCouponData(null);
