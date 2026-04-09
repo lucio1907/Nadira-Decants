@@ -34,11 +34,9 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   const { showAlert } = useAlert();
   const [isPending, startTransition] = useTransition();
   const [uploadingImage, setUploadingImage] = useState(false);
-
   // Drag and drop state for images
   const [isDragging, setIsDragging] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
   const [formData, setFormData] = useState<Producto>(() => {
     if (!initialData) return { ...emptyForm, id: "" } as Producto;
     return {
@@ -155,7 +153,6 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
         data.append("file", fileToUpload);
         const res = await fetch("/api/admin/upload", { method: "POST", body: data });
         const json = await res.json();
-
         if (json.url) {
           setFormData(prev => ({ ...prev, imagenes: [...prev.imagenes, json.url] }));
         } else {
@@ -199,7 +196,11 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   const onSortOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 3419076 (refactor: modularize product form, implement server actions, and improve order data handling)
     setFormData(prev => {
       const newImages = [...prev.imagenes];
       const item = newImages.splice(draggedIndex, 1)[0];
@@ -219,7 +220,6 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (formData.variantes.length === 0) {
       showAlert("Debes agregar al menos una variante.", { type: "warning" });
       return;
@@ -227,7 +227,6 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
 
     startTransition(async () => {
       const result = await upsertProductAction(formData);
-
       if (result.success) {
         showAlert(isEdit ? "Producto actualizado correctamente" : "Producto creado correctamente", { type: "success" });
         router.push("/admin/productos");

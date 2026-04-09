@@ -140,4 +140,3 @@ export const ProductNotasSection = ({ notas }: Props) => {
     </section>
   );
 };
-

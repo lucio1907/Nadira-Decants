@@ -25,7 +25,7 @@ export const mapOrder = (order: DBOrder): Order => ({
   } : undefined,
   shippingCost: order.shipping_cost || undefined,
   trackingNumber: order.nro_seguimiento || undefined,
-  cupon_id: order.cupon_id || undefined,
+   cupon_id: order.cupon_id || undefined,
   descuento: order.descuento || undefined,
   createdAt: new Date(order.created_at),
   updatedAt: order.updated_at ? new Date(order.updated_at) : undefined,

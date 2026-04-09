@@ -120,4 +120,3 @@ export const getProductBySlugServer = async (slug: string): Promise<Producto | n
     return null;
   }
 };
-

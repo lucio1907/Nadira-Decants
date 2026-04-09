@@ -60,7 +60,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           }}
         />
       )}
-
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">
         <span className="text-heading font-display">Nadira Admin</span>
