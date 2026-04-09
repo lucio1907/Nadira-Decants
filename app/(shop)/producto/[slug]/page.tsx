@@ -50,7 +50,6 @@ const ProductoPage = async ({
         }}
         className="relative z-20 border-b border-transparent md:border-[var(--border)]"
       >
-      >
         <div className="container-nd" style={{ padding: "var(--space-md) var(--space-md)" }}>
           <nav
             className="flex items-center gap-2 overflow-x-auto whitespace-nowrap"
