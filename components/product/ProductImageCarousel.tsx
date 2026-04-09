@@ -57,7 +57,19 @@ export const ProductImageCarousel = ({ imagenes, nombre }: Props) => {
   };
 
   return (
-    <div className="relative w-full h-full group flex flex-col items-center justify-center">
+    <div className="relative w-full h-full group flex flex-col items-center justify-center touch-pan-y">
+      {/* Invisible Tap Zones for Navigation (Mobile Friendly) */}
+      <div 
+        className="absolute left-0 top-0 w-1/4 h-full z-20 cursor-pointer" 
+        onClick={prev}
+        aria-label="Imagen anterior"
+      />
+      <div 
+        className="absolute right-0 top-0 w-1/4 h-full z-20 cursor-pointer" 
+        onClick={next}
+        aria-label="Siguiente imagen"
+      />
+
       {/* Scroll Container */}
       <div
         ref={scrollRef}
@@ -68,75 +80,62 @@ export const ProductImageCarousel = ({ imagenes, nombre }: Props) => {
         {imagenes.map((src, idx) => (
           <div
             key={idx}
-            className="relative flex-shrink-0 w-full h-full snap-start flex items-center justify-center p-6 md:p-8"
+            className="relative flex-shrink-0 w-full h-full snap-start flex items-center justify-center p-0"
           >
-            <div className="relative w-full h-full aspect-square">
+            <div className="relative w-full h-full">
               <Image
                 src={src}
                 alt={`${nombre} - ${idx + 1}`}
                 fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-transform duration-700 ease-in-out hover:scale-105"
+                sizes="(max-width: 1024px) 100vw, 800px"
+                quality={95}
+                className="object-contain transition-transform duration-700 ease-in-out hover:scale-[1.02]"
                 priority={idx === 0}
               />
-              {/* Subtle reflection overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-30 pointer-events-none" />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Navigation Arrows - Only if > 1 image */}
+      {/* Navigation Arrows */}
       {imagenes.length > 1 && (
         <>
           <button
             onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/50 hover:text-white hover:bg-black/40 transition-all opacity-0 group-hover:opacity-100 hidden md:flex items-center justify-center"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-4 text-white hover:text-[var(--accent)] transition-all active:scale-90 flex items-center justify-center bg-black/5 hover:bg-black/20 rounded-r-lg"
             aria-label="Anterior"
           >
-            <ChevronLeft size={24} strokeWidth={1.5} />
+            <ChevronLeft size={24} className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
           </button>
           <button
             onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/50 hover:text-white hover:bg-black/40 transition-all opacity-0 group-hover:opacity-100 hidden md:flex items-center justify-center"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-4 text-white hover:text-[var(--accent)] transition-all active:scale-90 flex items-center justify-center bg-black/5 hover:bg-black/20 rounded-l-lg"
             aria-label="Siguiente"
           >
-            <ChevronRight size={24} strokeWidth={1.5} />
+            <ChevronRight size={24} className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
           </button>
         </>
       )}
 
-      {/* Indicators / Dots - Only if > 1 image */}
+      {/* Simple Indicators - Only if > 1 image */}
       {imagenes.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+        <div className="flex justify-center gap-3 p-4 mt-2 mb-4">
           {imagenes.map((_, idx) => (
             <button
               key={idx}
               onClick={() => scrollTo(idx)}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                activeIndex === idx
-                  ? "bg-[var(--accent)] w-4"
-                  : "bg-white/20 hover:bg-white/40"
-              }`}
+              className="group/indicator relative p-1" // Large hit area
               aria-label={`Ir a imagen ${idx + 1}`}
-            />
+            >
+              <div 
+                className={`h-0.5 rounded-full transition-all duration-500 ${
+                  activeIndex === idx
+                    ? "bg-[var(--accent)] w-10"
+                    : "bg-white/10 w-4 group-hover/indicator:bg-white/30"
+                }`}
+              />
+            </button>
           ))}
-        </div>
-      )}
-
-      {/* Decorative Side Text */}
-      <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-20 hidden sm:block pointer-events-none">
-        <span className="text-[8px] tracking-[0.4em] uppercase text-nd-text-disabled vertical-text opacity-40 font-mono">
-          NADIRA_DECANTS © 2026
-        </span>
-      </div>
-      
-      {/* Decorative Image Info (e.g. 1/3) */}
-      {imagenes.length > 1 && (
-        <div className="absolute top-6 right-6 z-20 pointer-events-none">
-          <span className="text-[10px] tracking-[0.2em] font-mono text-white/30">
-            0{activeIndex + 1} <span className="text-white/10">/</span> 0{imagenes.length}
-          </span>
         </div>
       )}
     </div>

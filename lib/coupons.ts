@@ -1,78 +1,107 @@
 import { createAdminClient } from "./supabase/server";
 import { Coupon } from "@/types";
+import { Database } from "@/types/database";
 
-export async function getCoupons() {
-  const supabase = await createAdminClient();
-  const { data, error } = await supabase
-    .from("cupones")
-    .select("*")
-    .order("created_at", { ascending: false });
+type DBCoupon = Database["public"]["Tables"]["cupones"]["Row"];
 
-  if (error) {
-    console.error("Error fetching coupons:", error);
+/**
+ * Fetches all coupons from the database.
+ */
+export async function getCoupons(): Promise<Coupon[]> {
+  try {
+    const supabase = await createAdminClient();
+    const { data, error } = await supabase
+      .from("cupones")
+      .select(`
+        id, codigo, valor, tipo, activo, expiracion, 
+        minimo_compra, usos_maximos, usos_actuales, created_at
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching coupons:", error);
+      return [];
+    }
+
+    return data as Coupon[];
+  } catch (error) {
+    console.error("Error in getCoupons:", error);
     return [];
   }
-
-  return data as Coupon[];
 }
 
+/**
+ * Validates a coupon code against a subtotal.
+ */
 export async function validateCoupon(code: string, subtotal: number) {
-  const supabase = await createAdminClient();
-  
-  // Buscar cupón activo por código (case insensitive)
-  const { data: coupon, error } = await supabase
-    .from("cupones")
-    .select("*")
-    .ilike("codigo", code)
-    .eq("activo", true)
-    .single();
+  try {
+    const supabase = await createAdminClient();
+    
+    const { data: coupon, error } = await supabase
+      .from("cupones")
+      .select("*")
+      .ilike("codigo", code)
+      .eq("activo", true)
+      .single();
 
-  if (error || !coupon) {
-    return { valid: false, message: "El cupón no existe o no es válido" };
-  }
+    if (error || !coupon) {
+      return { valid: false, message: "El cupón no existe o no es válido" };
+    }
 
-  const now = new Date();
-  
-  // Verificar expiración
-  if (coupon.expiracion && new Date(coupon.expiracion) < now) {
-    return { valid: false, message: "El cupón ha expirado" };
-  }
+    const now = new Date();
+    
+    if (coupon.expiracion && new Date(coupon.expiracion) < now) {
+      return { valid: false, message: "El cupón ha expirado" };
+    }
 
-  // Verificar usos máximos
-  if (coupon.usos_maximos && coupon.usos_actuales >= coupon.usos_maximos) {
-    return { valid: false, message: "El cupón ha agotado su límite de usos" };
-  }
+    if (coupon.usos_maximos && coupon.usos_actuales >= coupon.usos_maximos) {
+      return { valid: false, message: "El cupón ha agotado su límite de usos" };
+    }
 
-  // Verificar monto mínimo
-  if (coupon.minimo_compra && subtotal < coupon.minimo_compra) {
+    if (coupon.minimo_compra && subtotal < coupon.minimo_compra) {
+      return { 
+        valid: false, 
+        message: `Este cupón requiere una compra mínima de $${coupon.minimo_compra.toLocaleString("es-AR")}` 
+      };
+    }
+
+    let discount = 0;
+    if (coupon.tipo === "porcentaje") {
+      discount = Math.round((subtotal * coupon.valor) / 100);
+    } else {
+      discount = coupon.valor;
+    }
+
     return { 
-      valid: false, 
-      message: `Este cupón requiere una compra mínima de $${coupon.minimo_compra.toLocaleString("es-AR")}` 
+      valid: true, 
+      coupon: coupon as Coupon,
+      discount
     };
+  } catch (error) {
+    console.error("Error in validateCoupon:", error);
+    return { valid: false, message: "Error al validar el cupón" };
   }
-
-  // Calcular descuento
-  let discount = 0;
-  if (coupon.tipo === "porcentaje") {
-    discount = Math.round((subtotal * coupon.valor) / 100);
-  } else {
-    discount = coupon.valor;
-  }
-
-  return { 
-    valid: true, 
-    coupon: coupon as Coupon,
-    discount
-  };
 }
 
+/**
+ * Saves or updates a coupon.
+ */
 export async function saveCoupon(coupon: Partial<Coupon>) {
   const supabase = await createAdminClient();
   
+  const { created_at, ...cleanCoupon } = coupon;
+  
+  const couponData: Database["public"]["Tables"]["cupones"]["Update"] = {
+    ...cleanCoupon,
+    expiracion: cleanCoupon.expiracion ? (new Date(cleanCoupon.expiracion)).toISOString() : null,
+    minimo_compra: cleanCoupon.minimo_compra || null,
+    usos_maximos: cleanCoupon.usos_maximos || null,
+  };
+
   if (coupon.id) {
     const { data, error } = await supabase
       .from("cupones")
-      .update(coupon)
+      .update(couponData)
       .eq("id", coupon.id)
       .select()
       .single();
@@ -81,7 +110,7 @@ export async function saveCoupon(coupon: Partial<Coupon>) {
   } else {
     const { data, error } = await supabase
       .from("cupones")
-      .insert(coupon)
+      .insert(couponData as Database["public"]["Tables"]["cupones"]["Insert"])
       .select()
       .single();
     if (error) throw error;
@@ -89,6 +118,9 @@ export async function saveCoupon(coupon: Partial<Coupon>) {
   }
 }
 
+/**
+ * Deletes a coupon by ID.
+ */
 export async function deleteCoupon(id: string) {
   const supabase = await createAdminClient();
   const { error } = await supabase.from("cupones").delete().eq("id", id);
@@ -96,17 +128,23 @@ export async function deleteCoupon(id: string) {
   return true;
 }
 
+/**
+ * Increments the usage count of a coupon.
+ */
 export async function incrementCouponUsage(id: string) {
   const supabase = await createAdminClient();
   
-  // Usar rpc o update simple si no hay concurrencia pesada
-  // Para evitar rpc complejas, haremos un update relativo
-  const { data: current } = await supabase.from("cupones").select("usos_actuales").eq("id", id).single();
+  // Using direct update for simplicity, assuming low concurrency for individual coupons
+  const { data: current } = await supabase
+    .from("cupones")
+    .select("usos_actuales")
+    .eq("id", id)
+    .single();
   
   if (current) {
     await supabase
       .from("cupones")
-      .update({ usos_actuales: (current.usos_actuales || 0) + 1 })
+      .update({ usos_actuales: (current.usos_actuales || 0) + 1 } as any)
       .eq("id", id);
   }
 }

@@ -5,20 +5,22 @@ export interface Variante {
   costo?: number;
 }
 
+export interface NotasOlfativas {
+  salida: string[];
+  corazon: string[];
+  fondo: string[];
+}
+
 export interface Producto {
   id: string;
   slug: string;
   nombre: string;
   marca: string;
   descripcion: string;
-  notas: {
-    salida: string[];
-    corazon: string[];
-    fondo: string[];
-  };
+  notas: NotasOlfativas;
   imagenes: string[];
   variantes: Variante[];
-  mlTotalesBotella?: number;
+  mlTotalesBotella: number;
 }
 
 export interface CartItem {

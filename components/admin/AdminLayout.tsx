@@ -3,14 +3,37 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Package2, Settings, Menu, X, ShoppingCart, ExternalLink, BarChart3, Ticket } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { useRouter } from "next/navigation";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPending) {
+      setProgress(10);
+      interval = setInterval(() => {
+        setProgress(prev => (prev < 90 ? prev + 10 : prev));
+      }, 200);
+    } else {
+      setProgress(100);
+      setTimeout(() => setProgress(0), 200);
+    }
+    return () => clearInterval(interval);
+  }, [isPending]);
+
+  const navigate = (href: string) => {
+    setIsMobileMenuOpen(false);
+    startTransition(() => {
+      router.push(href);
+    });
+  };
 
   const handleLogout = async () => {
     await logoutAdmin();
@@ -27,6 +50,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[var(--black)] flex flex-col md:flex-row">
+      {/* Top Progress Bar */}
+      {isPending && (
+        <div 
+          className="nd-progress-bar" 
+          style={{ 
+            width: `${progress}%`,
+            transition: 'width 0.4s ease-out' 
+          }} 
+        />
+      )}
+      
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">
         <span className="text-heading font-display">Nadira Admin</span>
@@ -59,11 +93,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               const isActive = pathname.startsWith(item.href);
               return (
                 <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                  <button
+                    onClick={() => navigate(item.href)}
                     className={`
-                      flex items-center gap-3 px-6 py-3 transition-colors
+                      flex items-center gap-3 px-6 py-3 transition-colors w-full text-left
                       ${isActive
                         ? "text-[var(--text-display)] border-r-2 border-[var(--accent)] bg-[var(--surface-raised)]"
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.02)]"
@@ -72,7 +105,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   >
                     <item.icon size={20} />
                     <span className="font-body text-sm uppercase tracking-widest">{item.name}</span>
-                  </Link>
+                  </button>
+
                 </li>
               );
             })}
@@ -99,9 +133,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8 min-w-0 bg-[var(--black)]">
+      <main className={`flex-1 md:ml-64 p-4 md:p-8 min-w-0 bg-[var(--black)] transition-opacity duration-500 ${isPending ? 'opacity-30' : 'opacity-100'}`}>
         {children}
       </main>
+
     </div>
   );
 }

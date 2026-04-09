@@ -126,6 +126,7 @@ export const HeroSection = () => {
               alt="Luxury Perfume Bottle"
               fill
               sizes="(min-width: 1024px) 540px, 1px"
+              quality={100}
               className="object-contain"
               priority
             />
@@ -140,6 +141,7 @@ export const HeroSection = () => {
           alt="Luxury Perfume Bottle Background"
           fill
           sizes="(max-width: 1024px) 100vw, 1px"
+          quality={80}
           className="object-cover object-center scale-110 blur-[10px]"
           priority
         />

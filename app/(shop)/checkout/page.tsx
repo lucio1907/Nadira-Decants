@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ShippingInfo } from "@/types";
 import { calculateShipping } from "@/lib/shipping";
 import { X } from "lucide-react";
+import { validateCouponAction } from "@/app/admin/(dashboard)/cupones/actions";
 
 const PaymentBrick = dynamic(
   () =>
@@ -64,19 +65,16 @@ const CheckoutPage = () => {
     setValidatingCoupon(true);
     setCouponError(null);
     try {
-      const res = await fetch("/api/coupons/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponCode, subtotal }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Cupón inválido");
+      const data = await validateCouponAction(couponCode, subtotal);
+      
+      if (!data.valid) {
+        throw new Error(data.message || "Cupón inválido");
       }
+      
       setCouponData({
-        code: data.coupon.codigo,
-        discount: data.discount,
-        couponId: data.coupon.id,
+        code: data.coupon!.codigo,
+        discount: data.discount!,
+        couponId: data.coupon!.id,
       });
     } catch (err: any) {
       setCouponError(err.message);
