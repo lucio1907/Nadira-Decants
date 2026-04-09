@@ -45,11 +45,10 @@ const ProductoPage = async ({
       <div
         style={{
           background: "transparent",
-          borderBottom: "1px solid var(--border)",
           transition:
             "background-color 350ms cubic-bezier(0.25, 0.1, 0.25, 1), border-color 350ms cubic-bezier(0.25, 0.1, 0.25, 1)",
         }}
-        className="relative z-20"
+        className="relative z-20 border-b border-transparent md:border-[var(--border)]"
       >
         <div className="container-nd" style={{ padding: "var(--space-md) var(--space-md)" }}>
           <nav
@@ -83,11 +82,11 @@ const ProductoPage = async ({
             <div className="nd-animate-fade-in w-full lg:sticky lg:top-32 relative group flex items-center justify-center overflow-hidden">
               
               {/* Background Grid Lines */}
-              <div className="absolute inset-0 nd-pattern-grid opacity-[0.05]" />
+              <div className="absolute inset-0 nd-pattern-grid opacity-[0.05] hidden md:block" />
               
               {/* Subtle accent lines */}
-              <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+              <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent hidden md:block" />
+              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent hidden md:block" />
 
               <div
                 className="relative w-full aspect-[4/5] sm:aspect-square flex items-center justify-center transition-all duration-700"
@@ -174,7 +173,7 @@ const ProductoPage = async ({
               />
 
               {/* Trust Information Section - Compact & Below CTA */}
-              <div className="flex flex-col gap-4 mt-12 nd-delay-3 nd-animate-fade-in-up border-t border-white/5 pt-8">
+              <div className="flex flex-col gap-4 mt-12 nd-delay-3 nd-animate-fade-in-up border-t-0 md:border-t border-white/5 pt-8">
                 {/* 100% Original Guarantee */}
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/10 group transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20">
                   <div className="w-10 h-10 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] flex-shrink-0 shadow-[0_0_15px_rgba(211,176,0,0.1)]">

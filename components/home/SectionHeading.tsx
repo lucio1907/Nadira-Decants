@@ -5,7 +5,7 @@ import { ScrollReveal } from "@/hooks/useScrollAnimation";
 interface SectionHeadingProps {
   tag?: string;
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   dark?: boolean;
   center?: boolean;
 }

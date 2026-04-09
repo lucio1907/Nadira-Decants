@@ -9,17 +9,17 @@ import { FAQSection } from "@/components/home/FAQSection";
 const features = [
   {
     title: "Originales",
-    desc: "Cada decant proviene directamente del frasco original. Garantía de autenticidad absoluta.",
+    desc: "Todos los decants son de frascos originales. Probás el perfume real, tal como es.",
     icon: "I",
   },
   {
     title: "Accesibles",
-    desc: "Desde 2ml. Descubrí tu perfume ideal sin el compromiso del frasco completo.",
+    desc: "Formato 5 ml, ideal para probar sin gastar de más. Elegí con seguridad antes de comprar el frasco completo.",
     icon: "II",
   },
   {
-    title: "Artesanales",
-    desc: "Preparados con precisión, en atomizadores de vidrio de alta calidad.",
+    title: "Cuidado en cada detalle",
+    desc: "Fraccionados con cuidado, en atomizadores de vidrio de buena calidad.",
     icon: "III",
   },
 ];
@@ -45,7 +45,7 @@ const HomePage = async () => {
           <SectionHeading
             tag="Nuestra colección"
             title="Catálogo"
-            subtitle="Cada decant es preparado con precisión artesanal, directo del frasco original."
+            subtitle="Todos los decants son de frascos originales. Probás el perfume real, sin gastar de más."
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
@@ -68,7 +68,7 @@ const HomePage = async () => {
           <SectionHeading
             tag="La experiencia Nadira"
             title="El arte del decant"
-            subtitle="Probá fragancias de lujo sin el compromiso del frasco completo."
+            subtitle="Elegir un perfume no debería ser a ciegas. Acá podés probar, comparar y encontrar el tuyo."
           />
           <div className="mt-16">
             <FeatureGrid features={features} />

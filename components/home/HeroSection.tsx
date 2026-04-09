@@ -64,7 +64,7 @@ export const HeroSection = () => {
                 transition: "all 800ms cubic-bezier(0.16, 1, 0.3, 1) 100ms",
               }}
             >
-              Excellence en parfumerie
+              Probá antes de elegir
             </span>
           </div>
 
@@ -89,7 +89,8 @@ export const HeroSection = () => {
               transition: "all 900ms cubic-bezier(0.16, 1, 0.3, 1) 500ms",
             }}
           >
-            Descubrí la sofisticación en cada gota. Nuestra curaduría de decants te acerca a las fragancias más exclusivas del mundo.
+            Probá perfumes sin tener que comprar el frasco entero.
+            Te ayudo a encontrar el indicado para vos.
           </p>
 
           <div

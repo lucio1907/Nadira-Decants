@@ -19,29 +19,35 @@ export const AboutSection = () => {
           {/* Text Column */}
           <div className="order-2 lg:order-1">
             <SectionHeading
-              tag="Nuestra Esencia"
+              tag="Mi Esencia"
               title="El Arte de la Fragancia"
-              subtitle="En Nadira, creemos que el lujo no debería ser inalcanzable. Nuestra misión es democratizar la alta perfumería a través del decantado artesanal."
+              subtitle={
+                <>
+                  En Nadira, elegir un perfume no es comprar a ciegas.
+                  <br className="hidden sm:block" />{" "}
+                  Podés probarlos en formato chico, ver cómo te quedan y decidir sin apuro cuál es para vos.
+                </>
+              }
               center={false}
             />
 
             <ScrollReveal delay={0.3}>
-              <div className="space-y-8 text-nd-body max-w-xl">
+              <div className="space-y-6 text-nd-body max-w-xl">
                 <p>
-                  Cada fragancia en nuestra colección ha sido seleccionada por su carácter único y su historia. Entendemos que un perfume es una firma personal, y encontrar la ideal requiere tiempo y exploración.
+                  Nuestra selección no es azarosa: cada fragancia está aquí porque realmente vale la pena. No buscamos volumen, sino criterio y exclusividad en cada nota.
                 </p>
                 <p>
-                  Utilizamos solo atomizadores de vidrio de alta calidad y técnicas de decantado precisas que preservan la integridad de cada nota olfativa, directamente desde el frasco original hacia tu colección.
+                  Garantizamos la autenticidad absoluta de nuestros decants, fraccionando perfumes originales con la máxima precisión en envases prácticos, diseñados para acompañarte y ser descubiertos en tu propia piel.
                 </p>
 
                 <div className="pt-8 flex flex-col sm:flex-row gap-6">
                   <div className="flex-1">
                     <h4 className="text-nd-label mb-2" style={{ color: "var(--accent)" }}>Autenticidad</h4>
-                    <p className="text-nd-body-sm">Garantizamos que cada gota es 100% original, sin alteraciones ni rellenos.</p>
+                    <p className="text-nd-body-sm">Todos los perfumes son originales. Probás exactamente lo que después comprarías en tamaño completo.</p>
                   </div>
                   <div className="flex-1">
                     <h4 className="text-nd-label mb-2" style={{ color: "var(--accent)" }}>Pasión</h4>
-                    <p className="text-nd-body-sm">Somos entusiastas que amamos compartir la magia de los aromas exclusivos.</p>
+                    <p className="text-nd-body-sm">Me gusta probar, comparar y recomendar. Por eso, si no sabés cuál elegir, te ayudo.</p>
                   </div>
                 </div>
               </div>
