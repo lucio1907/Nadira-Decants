@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Coupon } from "@/types";
 import { X, Save, AlertCircle } from "lucide-react";
-import { saveCouponAction } from "./actions";
+import { upsertCouponAction } from "./actions";
 import { CustomDatePicker } from "@/components/admin/CustomDatePicker";
 
 interface Props {
@@ -43,7 +43,7 @@ export function CouponForm({ coupon, onClose }: Props) {
       return;
     }
 
-    const res = await saveCouponAction({
+    const res = await upsertCouponAction({
       ...formData,
       codigo: formData.codigo?.toUpperCase(),
     });

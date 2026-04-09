@@ -15,10 +15,11 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAlert } from "@/hooks/useAlert";
 import Image from "next/image";
+import { deleteProductAction } from "@/app/admin/(dashboard)/productos/actions";
 
 
 export default function ProductsList({ initialProducts }: { initialProducts: Producto[] }) {
@@ -28,6 +29,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isPending, startTransition] = useTransition();
   const itemsPerPage = 8;
 
   // Sincronizar estado local cuando cambian los props (después de router.refresh())
@@ -94,24 +96,21 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
     if (!confirmed) return;
 
     setDeletingId(id);
-    try {
-      const res = await fetch(`/api/productos/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        // Actualizamos estado local inmediatamente
-        setProducts(prev => prev.filter(p => p.id !== id));
-        
-        // Disparamos refresh pero sin bloquear
-        router.refresh();
-        
-        await showAlert("El producto ha sido eliminado correctamente.", { type: "success" });
-      } else {
-        await showAlert("Error al eliminar el producto.", { type: "error" });
+    startTransition(async () => {
+      try {
+        const result = await deleteProductAction(id);
+        if (result.success) {
+          setProducts(prev => prev.filter(p => p.id !== id));
+          await showAlert("El producto ha sido eliminado correctamente.", { type: "success" });
+        } else {
+          await showAlert(result.error || "Error al eliminar el producto.", { type: "error" });
+        }
+      } catch (e) {
+        await showAlert("Error inesperado al intentar eliminar el producto.", { type: "error" });
+      } finally {
+        setDeletingId(null);
       }
-    } catch (e) {
-      await showAlert("Error de red al intentar eliminar el producto.", { type: "error" });
-    } finally {
-      setDeletingId(null);
-    }
+    });
   };
 
 
@@ -156,15 +155,25 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
             <input 
               type="text"
               placeholder="Buscar perfume o marca..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              defaultValue={searchTerm}
+              onChange={(e) => {
+                const val = e.target.value;
+                startTransition(() => {
+                  setSearchTerm(val);
+                });
+              }}
               className="nd-input !py-2 !pl-10 !pr-4 !border !rounded-md !border-[var(--border)] focus:!border-[var(--accent)] text-sm w-full"
             />
           </div>
           
           <select 
             value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              startTransition(() => {
+                setSelectedBrand(val);
+              });
+            }}
             className="bg-[var(--surface-raised)] border border-[var(--border)] text-[var(--text-primary)] text-sm rounded-md px-3 py-2 outline-none focus:border-[var(--accent)]"
           >
             <option value="all">Todas las marcas</option>
@@ -175,7 +184,12 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
 
           <select 
             value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              startTransition(() => {
+                setStockFilter(val);
+              });
+            }}
             className="bg-[var(--surface-raised)] border border-[var(--border)] text-[var(--text-primary)] text-sm rounded-md px-3 py-2 outline-none focus:border-[var(--accent)]"
           >
             <option value="all">Todo el stock</option>
@@ -213,15 +227,20 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
       </div>
 
       {/* Content Area */}
-      {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className={`transition-opacity duration-300 ${isPending ? "opacity-50" : "opacity-100"}`}>
+        {viewMode === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {currentProducts.map((p) => {
             const minStock = Math.min(...p.variantes.map(v => v.stock));
             const isOutOfStock = minStock === 0;
             const isLowStock = minStock > 0 && minStock < 5;
 
             return (
-              <div key={p.id} className={`nd-card flex flex-col justify-between group relative overflow-hidden transition-all duration-300 hover:shadow-xl ${isOutOfStock ? "opacity-75" : ""}`}>
+              <div 
+                key={p.id} 
+                onClick={() => router.push(`/admin/productos/${p.id}`)}
+                className={`nd-card flex flex-col justify-between group relative overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer ${isOutOfStock ? "opacity-75" : ""}`}
+              >
                 {/* Visual Indicators */}
                 {isOutOfStock && (
                   <div className="absolute top-2 right-2 z-10">
@@ -276,13 +295,17 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
                 <div className="flex items-center gap-2 justify-end mt-6 pt-4 border-t border-[var(--border)]">
                   <Link 
                     href={`/admin/productos/${p.id}`}
+                    onClick={(e) => e.stopPropagation()}
                     className="nd-btn-ghost !min-h-fit !p-2 rounded-full hover:bg-[var(--surface-raised)] transition-all"
                     title="Editar"
                   >
                     <Edit2 size={16} />
                   </Link>
                   <button 
-                    onClick={() => handleDelete(p.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(p.id);
+                    }}
                     disabled={deletingId === p.id}
                     className="text-[#D71921] hover:bg-[rgba(215,25,33,0.05)] p-2 rounded-full transition-colors disabled:opacity-50"
                     title="Eliminar"
@@ -311,7 +334,11 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
                 {currentProducts.map((p) => {
                   const minStock = Math.min(...p.variantes.map(v => v.stock));
                   return (
-                    <tr key={p.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors group">
+                    <tr 
+                      key={p.id} 
+                      onClick={() => router.push(`/admin/productos/${p.id}`)}
+                      className="hover:bg-[rgba(255,255,255,0.02)] transition-colors group cursor-pointer"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded bg-[var(--surface-raised)] overflow-hidden relative border border-[var(--border)]">
@@ -353,12 +380,16 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
                         <div className="flex items-center justify-end gap-2">
                           <Link 
                             href={`/admin/productos/${p.id}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="p-2 hover:bg-[var(--surface-raised)] rounded text-[var(--text-secondary)] hover:text-[var(--text-display)] transition-colors"
                           >
                             <Edit2 size={16} />
                           </Link>
                           <button 
-                            onClick={() => handleDelete(p.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(p.id);
+                            }}
                             disabled={deletingId === p.id}
                             className="p-2 hover:bg-[rgba(215,25,33,0.05)] rounded text-[var(--text-secondary)] hover:text-[#D71921] transition-colors"
                           >
@@ -373,7 +404,8 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
             </table>
           </div>
         </div>
-      )}
+        )}
+      </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (

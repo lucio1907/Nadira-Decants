@@ -1,21 +1,12 @@
 import { ProductForm } from "@/components/admin/ProductForm";
-import { getProductBySlug } from "@/lib/products"; // wait, we only have getProductBySlug or getProducts. 
+import { getProductByIdServer } from "@/lib/products-server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Producto } from "@/types";
-
-const getProductById = async (id: string): Promise<Producto | undefined> => {
-  // En este punto importaría desde db, pero actualmente getProducts no soporta buscar por id
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/productos`, { cache: 'no-store' });
-  const products: Producto[] = await res.json();
-  return products.find(p => p.id === id);
-};
 
 export default async function EditarProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = await getProductById(id);
+  const product = await getProductByIdServer(id);
 
   if (!product) {
     notFound();

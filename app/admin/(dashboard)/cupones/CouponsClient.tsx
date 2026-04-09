@@ -96,7 +96,11 @@ export function CouponsClient({ initialCoupons }: Props) {
             const usagePercent = coupon.usos_maximos ? (coupon.usos_actuales / coupon.usos_maximos) * 100 : 0;
 
             return (
-              <div key={coupon.id} className="nd-card group relative transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-xl">
+              <div 
+                key={coupon.id} 
+                onClick={() => handleEdit(coupon)}
+                className="nd-card group relative transition-all duration-500 hover:border-[var(--accent)]/40 hover:shadow-xl cursor-pointer"
+              >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between p-6 lg:p-10 gap-8">
                   <div className="flex flex-col sm:flex-row items-start gap-6 flex-1">
                     <div className={`p-5 rounded-full flex items-center justify-center transition-colors duration-500 ${status === "Activo" ? "bg-green-500/5 text-green-500 border border-green-500/10" : "bg-red-500/5 text-red-500 border border-red-500/10"
@@ -111,7 +115,10 @@ export function CouponsClient({ initialCoupons }: Props) {
                             {coupon.codigo}
                           </h3>
                           <button
-                            onClick={() => copyToClipboard(coupon.codigo)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyToClipboard(coupon.codigo);
+                            }}
                             className={`p-2 rounded-full transition-all duration-300 ${copiedCode === coupon.codigo ? "bg-green-500/10 text-green-500" : "text-[var(--text-disabled)] hover:text-[var(--accent)] hover:bg-[var(--accent-subtle)]"}`}
                             title="Copiar código"
                           >
@@ -159,14 +166,20 @@ export function CouponsClient({ initialCoupons }: Props) {
 
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleEdit(coupon)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(coupon);
+                        }}
                         className="p-3 text-[var(--text-secondary)] hover:text-[var(--text-display)] hover:bg-[var(--surface-raised)] rounded-lg transition-all border border-transparent hover:border-[var(--border)]"
                         title="Editar"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(coupon.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(coupon.id);
+                        }}
                         disabled={isDeleting === coupon.id}
                         className="p-3 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all border border-transparent hover:border-red-500/10"
                         title="Eliminar"

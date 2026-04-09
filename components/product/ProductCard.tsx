@@ -59,7 +59,8 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
                   src={producto.imagenes[0]}
                   alt={producto.nombre}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                  quality={90}
                   className="object-contain drop-shadow-2xl p-8"
                   style={{
                     filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))",

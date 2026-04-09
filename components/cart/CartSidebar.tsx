@@ -114,6 +114,7 @@ export const CartSidebar = () => {
                       alt={item.nombre}
                       fill
                       sizes="96px"
+                      quality={85}
                       className="p-2 object-contain opacity-90 transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />

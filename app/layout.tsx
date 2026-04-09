@@ -42,6 +42,7 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${plusJakarta.variable} ${inter.variable}`}
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body

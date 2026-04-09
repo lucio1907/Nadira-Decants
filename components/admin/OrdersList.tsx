@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Order } from "@/types";
 import { 
   Search, 
@@ -23,7 +23,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useAlert } from "@/hooks/useAlert";
-
+import { updateOrderAction } from "@/app/admin/(dashboard)/ordenes/actions";
 
 interface OrdersListProps {
   initialOrders: Order[];
@@ -37,6 +37,7 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [trackingInput, setTrackingInput] = useState("");
+  const [isPending, startTransition] = useTransition();
   const { showAlert } = useAlert();
 
 
@@ -77,33 +78,26 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
 
   const handleUpdateStatus = async (orderId: string, newStatus: Order["status"]) => {
     setIsLoading(true);
-    try {
-      const res = await fetch("/api/admin/ordenes", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          orderId, 
-          status: newStatus,
-          trackingNumber: trackingInput 
-        }),
-      });
-
-      if (res.ok) {
-        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, trackingNumber: trackingInput } : o));
-        if (selectedOrder?.id === orderId) {
-          setSelectedOrder({ ...selectedOrder, status: newStatus, trackingNumber: trackingInput });
+    startTransition(async () => {
+      try {
+        const result = await updateOrderAction(orderId, newStatus, trackingInput);
+        
+        if (result.success) {
+          setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, trackingNumber: trackingInput } : o));
+          if (selectedOrder?.id === orderId) {
+            setSelectedOrder({ ...selectedOrder, status: newStatus, trackingNumber: trackingInput });
+          }
+          showAlert("Estado actualizado correctamente", { type: "success" });
+        } else {
+          showAlert(result.error || "Error al actualizar el estado", { type: "error" });
         }
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        showAlert(`Error al actualizar estado: ${errorData.error || "Error desconocido"}`, { type: "error" });
+      } catch (error) {
+        console.error("Error updating status:", error);
+        showAlert("Error inesperado al intentar actualizar el estado.", { type: "error" });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      showAlert("Error de conexión al intentar actualizar el estado.", { type: "error" });
-    } finally {
-
-      setIsLoading(false);
-    }
+    });
   };
 
   const translateStatus = (status: string) => {
@@ -223,8 +217,13 @@ Email: ${order.payerEmail}
             type="text" 
             placeholder="Buscar por cliente, ID o email..." 
             className="w-full pl-10 pr-4 py-2 bg-[var(--surface-raised)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            defaultValue={searchTerm}
+            onChange={(e) => {
+              const val = e.target.value;
+              startTransition(() => {
+                setSearchTerm(val);
+              });
+            }}
           />
         </div>
         
@@ -232,7 +231,11 @@ Email: ${order.payerEmail}
           {["all", "pending", "approved", "shipped", "delivered", "rejected"].map((s) => (
             <button
               key={s}
-              onClick={() => setFilter(s)}
+              onClick={() => {
+                startTransition(() => {
+                  setFilter(s);
+                });
+              }}
               className={`px-4 py-1.5 rounded-full text-[10px] font-body uppercase tracking-widest border transition-all whitespace-nowrap ${
                 filter === s 
                 ? "bg-[var(--accent)] border-[var(--accent)] text-white" 
@@ -246,7 +249,7 @@ Email: ${order.payerEmail}
       </div>
 
       {/* Orders Table */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
+      <div className={`bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden transition-opacity duration-300 ${isPending ? "opacity-50" : "opacity-100"}`}>
         <div className="overflow-x-auto selection:bg-[var(--accent)]/30">
           <table className="w-full text-left border-collapse min-w-[1000px] lg:min-w-full">
             <thead>
@@ -265,7 +268,8 @@ Email: ${order.payerEmail}
                 filteredOrders.map((order) => (
                   <tr 
                     key={order.id} 
-                    className="hover:bg-[rgba(255,255,255,0.01)] transition-colors group"
+                    onClick={() => setSelectedOrder(order)}
+                    className="hover:bg-[rgba(255,255,255,0.01)] transition-colors group cursor-pointer"
                   >
                     <td className="px-6 py-4">
                       <span className="text-[11px] font-mono text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
@@ -314,7 +318,10 @@ Email: ${order.payerEmail}
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button 
-                          onClick={() => setSelectedOrder(order)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedOrder(order);
+                          }}
                           className="p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-lg transition-all"
                           title="Ver detalles"
                         >
@@ -597,3 +604,4 @@ Email: ${order.payerEmail}
     </div>
   );
 }
+

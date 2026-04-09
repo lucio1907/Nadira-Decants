@@ -1,49 +1,69 @@
 import { createAdminClient } from "./supabase/server";
-import { Order, Producto } from "@/types";
+import { Order } from "@/types";
+import { Database } from "@/types/database";
 import { getProductsServer } from "./products-server";
-import { startOfDay, subDays, eachDayOfInterval, format, isWithinInterval } from "date-fns";
+import { startOfDay, subDays, eachDayOfInterval, format } from "date-fns";
 
-export async function getOrders() {
-  const supabase = await createAdminClient();
-  
-  const { data, error } = await supabase
-    .from("ordenes")
-    .select("*")
-    .order("created_at", { ascending: false });
+type DBOrder = Database["public"]["Tables"]["ordenes"]["Row"];
 
-  if (error) {
-    console.error("Error fetching orders:", error);
+const mapOrder = (order: DBOrder): Order => ({
+  id: order.id,
+  items: order.items as any, // Typed in Order interface
+  total: order.total,
+  status: order.status as Order["status"],
+  mpPaymentId: order.mp_payment_id || undefined,
+  payerEmail: order.payer_email || undefined,
+  metodoEntrega: order.metodo_entrega as Order["metodoEntrega"],
+  clienteNombre: order.cliente_nombre,
+  clienteApellido: order.cliente_apellido,
+  clienteTelefono: order.cliente_telefono,
+  direccionEnvio: order.direccion_envio ? {
+    ...(order.direccion_envio as any),
+    codigoPostal: (order.direccion_envio as any).cp || (order.direccion_envio as any).codigoPostal,
+    ciudad: (order.direccion_envio as any).localidad || (order.direccion_envio as any).ciudad,
+  } : undefined,
+  shippingCost: order.shipping_cost,
+  trackingNumber: order.nro_seguimiento || undefined,
+  createdAt: new Date(order.created_at),
+  updatedAt: order.updated_at ? new Date(order.updated_at) : undefined,
+});
+
+/**
+ * Fetches all orders from Supabase.
+ */
+export async function getOrders(): Promise<Order[]> {
+  try {
+    const supabase = await createAdminClient();
+    
+    const { data, error } = await supabase
+      .from("ordenes")
+      .select(`
+        id, items, total, status, mp_payment_id, payer_email, metodo_entrega,
+        cliente_nombre, cliente_apellido, cliente_telefono, direccion_envio,
+        shipping_cost, nro_seguimiento, created_at, updated_at
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching orders:", error);
+      return [];
+    }
+
+    return (data as DBOrder[]).map(mapOrder);
+  } catch (error) {
+    console.error("Error in getOrders:", error);
     return [];
   }
-
-  // Map database fields to Order interface
-  return data.map((order: any) => ({
-    id: order.id,
-    items: order.items,
-    total: order.total,
-    status: order.status,
-    mpPaymentId: order.mp_payment_id,
-    payerEmail: order.payer_email,
-    metodoEntrega: order.metodo_entrega,
-    clienteNombre: order.cliente_nombre,
-    clienteApellido: order.cliente_apellido,
-    clienteTelefono: order.cliente_telefono,
-    direccionEnvio: order.direccion_envio ? {
-      ...order.direccion_envio,
-      codigoPostal: order.direccion_envio.cp || order.direccion_envio.codigoPostal,
-      ciudad: order.direccion_envio.localidad || order.direccion_envio.ciudad,
-    } : undefined,
-    shippingCost: order.shipping_cost,
-    trackingNumber: order.nro_seguimiento,
-    createdAt: new Date(order.created_at),
-    updatedAt: order.updated_at ? new Date(order.updated_at) : undefined,
-  })) as Order[];
 }
 
+/**
+ * Updates an order status and optionally the tracking number.
+ * Note: Prefer using individual Server Actions for this in the UI.
+ */
 export async function updateOrderStatus(orderId: string, status: Order["status"], trackingNumber?: string) {
   const supabase = await createAdminClient();
   
-  const updateData: any = { 
+  const updateData: Database["public"]["Tables"]["ordenes"]["Update"] = { 
     status, 
     updated_at: new Date().toISOString() 
   };
@@ -65,17 +85,20 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
   return true;
 }
 
+/**
+ * Generates a summary of orders for basic display.
+ */
 export async function getOrderSummary() {
   const orders = await getOrders();
   
   const totalSales = orders
-    .filter(o => o.status === "approved" || o.status === "shipped" || o.status === "delivered")
+    .filter(o => ["approved", "shipped", "delivered"].includes(o.status))
     .reduce((sum, o) => sum + o.total, 0);
     
-  const pendingOrders = orders.filter(o => o.status === "pending" || o.status === "in_process").length;
+  const pendingOrders = orders.filter(o => ["pending", "in_process"].includes(o.status)).length;
   const approvedOrders = orders.filter(o => o.status === "approved").length;
   const shippedSales = orders
-    .filter(o => o.metodoEntrega === "envio" && (o.status === "shipped" || o.status === "delivered"))
+    .filter(o => o.metodoEntrega === "envio" && ["shipped", "delivered"].includes(o.status))
     .reduce((sum, o) => sum + o.total, 0);
   
   return {
@@ -87,6 +110,9 @@ export async function getOrderSummary() {
   };
 }
 
+/**
+ * Generates detailed statistics for the dashboard.
+ */
 export async function getDetailedStats(days: number = 30) {
   const orders = await getOrders();
   const products = await getProductsServer();
@@ -112,7 +138,6 @@ export async function getDetailedStats(days: number = 30) {
   approvedOrders.forEach(order => {
     totalRevenue += order.total;
     order.items.forEach(item => {
-      // Find product and variant cost
       const prod = products.find(p => p.id === item.id);
       const variant = prod?.variantes.find(v => v.ml === item.variante.ml);
       const cost = variant?.costo || 0;
@@ -137,7 +162,7 @@ export async function getDetailedStats(days: number = 30) {
   });
 
   // 3. Status Distribution
-  const statusCounts = relevantOrders.reduce((acc: any, o) => {
+  const statusCounts = relevantOrders.reduce((acc: Record<string, number>, o) => {
     acc[o.status] = (acc[o.status] || 0) + 1;
     return acc;
   }, {});
@@ -145,12 +170,11 @@ export async function getDetailedStats(days: number = 30) {
   const statusData = Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
 
   // 4. Cart Abandonment
-  const pendingCount = relevantOrders.filter(o => o.status === "pending" || o.status === "in_process").length;
+  const pendingCount = relevantOrders.filter(o => ["pending", "in_process"].includes(o.status)).length;
   const totalAttempted = relevantOrders.length;
   const abandonmentRate = totalAttempted > 0 ? (pendingCount / totalAttempted) * 100 : 0;
 
   // 5. Product Depletion (Botella Madre)
-  // Calculate ML sold for ALL orders (lifetime) for accurate depletion
   const lifetimeApprovedOrders = orders.filter(o => 
     ["approved", "shipped", "delivered"].includes(o.status)
   );
