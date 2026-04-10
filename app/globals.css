@@ -674,6 +674,19 @@ input[type="reset"] {
   }
 }
 
+/* Desktop Scale Adjustments */
+@media (min-width: 1024px) {
+  :root {
+    --display-xl: 72px;
+    --display-lg: 56px;
+    --display-md: 42px;
+    --heading: 32px;
+    --subheading: 24px;
+    --body: 17px;
+    --body-sm: 14px;
+  }
+}
+
 /* Progressive Loading Bar */
 .nd-progress-bar {
   position: fixed;

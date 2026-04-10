@@ -154,7 +154,6 @@ const ProductoPage = async ({
                   marginBottom: "var(--space-xl)",
                   maxWidth: "520px",
                   lineHeight: 1.7,
-                  fontSize: "15px",
                   opacity: 0.8,
                 }}
               >

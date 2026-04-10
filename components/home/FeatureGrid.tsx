@@ -43,7 +43,7 @@ export const FeatureGrid = ({ features }: FeatureGridProps) => {
             <h3
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "22px",
+                fontSize: "28px",
                 fontWeight: 500,
                 color: "var(--text-display)",
                 marginBottom: "12px",
@@ -56,7 +56,7 @@ export const FeatureGrid = ({ features }: FeatureGridProps) => {
             <p
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "14px",
+                fontSize: "var(--body-sm)",
                 lineHeight: 1.7,
                 color: "var(--text-secondary)",
                 maxWidth: "280px",
