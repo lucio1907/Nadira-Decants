@@ -37,9 +37,8 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
         >
           {/* Image area */}
           <div
-            className="relative w-full overflow-hidden"
+            className="relative w-full overflow-hidden aspect-[3/4]"
             style={{
-              aspectRatio: "3 / 4",
               background: "var(--surface-raised)",
               display: "flex",
               alignItems: "center",
@@ -58,30 +57,24 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
             {/* Status Badge (Corner) - Only for low stock, not for out of stock */}
             {!isOutOfStock && totalStock <= 5 && (
               <div 
-                className="absolute bottom-16 right-4 z-30 py-1.5 px-3 rounded-sm text-[9px] tracking-[0.2em] uppercase font-bold animate-in fade-in zoom-in duration-700"
+                className="absolute top-4 right-4 z-40 py-2 px-3 rounded-sm font-bold shadow-2xl flex items-center gap-2 animate-in fade-in zoom-in duration-500"
                 style={{
-                  background: "rgba(211, 176, 0, 0.12)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(211, 176, 0, 0.25)",
-                  color: "var(--accent)",
+                  background: "var(--accent)",
+                  color: "#000000",
+                  fontSize: "10px",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  boxShadow: "0 10px 40px rgba(211, 176, 0, 0.4)",
                   fontFamily: "var(--font-body)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
               >
-                {/* Status Dot */}
-                <span 
-                  className={`w-1.5 h-1.5 rounded-full ${totalStock === 1 ? "animate-pulse" : ""}`}
-                  style={{ 
-                    background: "var(--accent)",
-                    boxShadow: "0 0 6px var(--accent)",
-                  }}
-                />
+                {/* Urgent Dot */}
+                <div className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
+                </div>
                 
-                {totalStock === 1 ? "¡Última unidad!" : "¡Últimas unidades!"}
+                <span>¡ÚLTIMAS UNIDADES!</span>
               </div>
             )}
 
@@ -100,33 +93,11 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
               </div>
             )}
 
-            {/* Marca & Gender label */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5">
-              <span
-                className="tracking-[0.2em] uppercase text-[10px] whitespace-nowrap opacity-60"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {producto.marca}
-              </span>
-              {producto.genero && (
-                <div 
-                  className="flex items-center gap-1.5 opacity-90 scale-95 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
-                  style={{ color: "var(--accent)" }}
-                >
-                  <GenderIcon size={9} strokeWidth={2.5} />
-                  <span className="tracking-[0.15em] uppercase text-[9px] font-bold">
-                    {producto.genero}
-                  </span>
-                </div>
-              )}
-            </div>
+
 
             {/* Product Image with parallax */}
             <div 
-              className={`relative z-10 flex items-center justify-center w-full h-full p-8 ${isOutOfStock ? "grayscale opacity-40" : ""}`}
+              className={`relative z-10 flex items-center justify-center w-full h-full ${isOutOfStock ? "grayscale opacity-40" : ""}`}
             >
               {producto.imagenes && producto.imagenes.length > 0 ? (
                 <Image
@@ -135,7 +106,7 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
                   quality={90}
-                  className="object-contain drop-shadow-2xl p-8"
+                  className="aspect-[3/4] object-cover drop-shadow-2xl"
                   style={{
                     filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))",
                   }}
@@ -180,9 +151,32 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
 
           {/* Info */}
           <div className="pt-6 flex flex-col flex-1 text-center">
-            {/* Name — now serif font via CSS */}
+            {/* Brand & Gender */}
+            <div className="flex flex-col items-center mb-4 min-h-[44px]">
+              <span
+                className="tracking-[0.3em] uppercase text-[10px] font-bold mb-1"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  color: "var(--accent)",
+                }}
+              >
+                {producto.marca}
+              </span>
+              {producto.genero && (
+                <div 
+                  className="flex items-center gap-1.5 text-[var(--text-disabled)]"
+                >
+                  <GenderIcon size={8} strokeWidth={2} />
+                  <span className="tracking-[0.1em] uppercase text-[8px]">
+                    {producto.genero}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Name — fixed min height for alignment */}
             <h3
-              className="text-[22px] mb-2 transition-colors duration-300 group-hover:text-[var(--accent)]"
+              className="text-[20px] mb-3 transition-colors duration-300 group-hover:text-[var(--accent)] line-clamp-2 min-h-[3.2rem] flex items-center justify-center"
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 500,
@@ -192,9 +186,9 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
               {producto.nombre}
             </h3>
 
-            {/* Description */}
+            {/* Description — flex-1 to push price down */}
             <p
-              className="line-clamp-2 text-nd-body-sm mb-6 flex-1 mx-auto max-w-[240px]"
+              className="line-clamp-2 text-nd-body-sm mb-6 flex-1 mx-auto max-w-[240px] overflow-hidden"
               style={{
                 fontFamily: "var(--font-body)",
                 lineHeight: 1.6,

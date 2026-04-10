@@ -90,7 +90,7 @@ export const ProductImageCarousel = ({ imagenes, nombre }: Props) => {
                 fill
                 sizes="(max-width: 1024px) 100vw, 800px"
                 quality={95}
-                className="object-contain transition-transform duration-700 ease-in-out p-4 sm:p-8"
+                className="aspect-[3/4] object-cover transition-transform duration-700 ease-in-out"
                 priority={idx === 0}
                 draggable={false}
               />
