@@ -96,7 +96,7 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
           <div className="pt-6 flex flex-col flex-1 text-center">
             {/* Name */}
             <h3
-              className="text-[18px] mb-2 transition-colors duration-300 group-hover:text-[var(--accent)]"
+              className="text-[22px] mb-2 transition-colors duration-300 group-hover:text-[var(--accent)]"
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 500,
@@ -108,7 +108,7 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
 
             {/* Description */}
             <p
-              className="line-clamp-2 text-[13px] mb-6 flex-1 mx-auto max-w-[240px]"
+              className="line-clamp-2 text-nd-body-sm mb-6 flex-1 mx-auto max-w-[240px]"
               style={{
                 fontFamily: "var(--font-body)",
                 lineHeight: 1.6,
