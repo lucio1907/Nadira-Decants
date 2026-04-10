@@ -16,6 +16,7 @@ const mapProduct = (prod: DBProducto): Producto => ({
   notas: (prod.notas as unknown as NotasOlfativas) || { salida: [], corazon: [], fondo: [] },
   imagenes: prod.imagenes || [],
   mlTotalesBotella: prod.ml_totales_botella,
+  genero: prod.genero as any,
   variantes: (prod.variantes || [])
     .sort((a, b) => a.ml - b.ml)
     .map((v) => ({
@@ -38,7 +39,7 @@ export const getProductsServer = unstable_cache(
       const { data, error } = await supabase
         .from("productos")
         .select(`
-          id, slug, nombre, marca, descripcion, notas, imagenes, ml_totales_botella,
+          id, slug, nombre, marca, descripcion, notas, imagenes, ml_totales_botella, genero,
           variantes (ml, precio, stock, costo)
         `)
         .order('nombre');
@@ -70,7 +71,7 @@ export const getProductByIdServer = async (id: string): Promise<Producto | null>
     const { data, error } = await supabase
       .from("productos")
       .select(`
-        id, slug, nombre, marca, descripcion, notas, imagenes, ml_totales_botella,
+        id, slug, nombre, marca, descripcion, notas, imagenes, ml_totales_botella, genero,
         variantes (ml, precio, stock, costo)
       `)
       .eq("id", id)
@@ -100,7 +101,7 @@ export const getProductBySlugServer = async (slug: string): Promise<Producto | n
     const { data, error } = await supabase
       .from("productos")
       .select(`
-        id, slug, nombre, marca, descripcion, notas, imagenes, ml_totales_botella,
+        id, slug, nombre, marca, descripcion, notas, imagenes, ml_totales_botella, genero,
         variantes (ml, precio, stock, costo)
       `)
       .eq("slug", slug)

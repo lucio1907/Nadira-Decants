@@ -7,9 +7,9 @@
 
 @theme inline {
   /* — Typography — */
-  --font-display: var(--font-display, "Plus Jakarta Sans", sans-serif);
-  --font-body: var(--font-body, "Inter", sans-serif);
-  --font-mono: var(--font-body, "Inter", sans-serif);
+  --font-display: var(--font-display, "Cormorant Garamond", Georgia, serif);
+  --font-body: var(--font-body, "DM Sans", system-ui, sans-serif);
+  --font-mono: var(--font-body, "DM Sans", system-ui, sans-serif);
 
   /* — Colors (Dark Mode — default) — */
   --color-nd-black: #182633;
@@ -27,6 +27,8 @@
   --color-nd-accent-hover: #ffde59;
   --color-nd-accent-subtle: rgba(211, 176, 0, 0.15);
   --color-nd-success: #4A9E5C;
+  --color-nd-error: #D71921;
+  --color-nd-error-subtle: rgba(215, 25, 33, 0.15);
   --color-nd-warning: #d3b000;
   --color-nd-interactive: #d3b000;
 
@@ -61,7 +63,8 @@
   --accent: #d3b000;
   --accent-hover: #ffde59;
   --accent-subtle: rgba(211, 176, 0, 0.15);
-  --success: #4A9E5C;
+  --error: #D71921;
+  --error-subtle: rgba(215, 25, 33, 0.15);
   --warning: #d3b000;
   --interactive: #d3b000;
 
@@ -96,6 +99,8 @@
   --interactive: #d3b000;
   --accent: #d3b000;
   --accent-subtle: rgba(211, 176, 0, 0.1);
+  --error: #D71921;
+  --error-subtle: rgba(215, 25, 33, 0.08);
 }
 
 * {
@@ -253,11 +258,39 @@ input[type="reset"] {
   background: var(--accent-hover);
   color: var(--black);
   transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(211, 176, 0, 0.25);
 }
 
 .nd-btn-primary:active {
   transform: scale(0.97);
   filter: brightness(0.9);
+}
+
+/* Gold sweep effect on primary button */
+.nd-btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 600ms ease;
+  pointer-events: none;
+}
+
+.nd-btn-primary:hover::after {
+  left: 120%;
+}
+
+.nd-btn-primary {
+  position: relative;
+  overflow: hidden;
 }
 
 
@@ -579,12 +612,58 @@ input[type="reset"] {
   }
 }
 
+/* Editorial clip-path text reveal */
+@keyframes nd-clip-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0% 0 0);
+  }
+}
+
+/* Golden line expansion */
+@keyframes nd-line-expand {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Gentle pulse for accent elements */
+@keyframes nd-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
 .nd-animate-fade-in {
   animation: nd-fade-in var(--duration-transition) ease forwards;
 }
 
 .nd-animate-fade-in-up {
   animation: nd-fade-in-up var(--duration-transition) ease-out forwards;
+}
+
+.nd-text-reveal {
+  animation: nd-clip-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.nd-golden-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  transform-origin: left;
+  animation: nd-line-expand 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.nd-golden-line-center {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  transform-origin: center;
+  animation: nd-line-expand 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Stagger delays */
@@ -594,6 +673,8 @@ input[type="reset"] {
 .nd-delay-4 { animation-delay: 400ms; }
 .nd-delay-5 { animation-delay: 600ms; }
 .nd-delay-6 { animation-delay: 800ms; }
+.nd-delay-7 { animation-delay: 1000ms; }
+.nd-delay-8 { animation-delay: 1200ms; }
 
 /* Scrollbar */
 ::-webkit-scrollbar {

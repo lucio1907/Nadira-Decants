@@ -19,6 +19,7 @@ export interface Database {
           notas: Json
           imagenes: string[]
           ml_totales_botella: number
+          genero: string
           created_at: string
         }
         Insert: {
@@ -30,6 +31,7 @@ export interface Database {
           notas?: Json
           imagenes?: string[]
           ml_totales_botella?: number
+          genero?: string
           created_at?: string
         }
         Update: {
@@ -41,6 +43,7 @@ export interface Database {
           notas?: Json
           imagenes?: string[]
           ml_totales_botella?: number
+          genero?: string
           created_at?: string
         }
       }

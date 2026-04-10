@@ -27,6 +27,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("all");
+  const [selectedGender, setSelectedGender] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -68,6 +69,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
       const matchesSearch = p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            p.marca.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesBrand = selectedBrand === "all" || p.marca === selectedBrand;
+      const matchesGender = selectedGender === "all" || p.genero === selectedGender;
       
       const minStock = Math.min(...p.variantes.map(v => v.stock));
       let matchesStock = true;
@@ -75,9 +77,9 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
       else if (stockFilter === "out") matchesStock = minStock === 0;
       else if (stockFilter === "in") matchesStock = minStock >= 5;
 
-      return matchesSearch && matchesBrand && matchesStock;
+      return matchesSearch && matchesBrand && matchesGender && matchesStock;
     });
-  }, [initialProducts, searchTerm, selectedBrand, stockFilter]);
+  }, [initialProducts, searchTerm, selectedBrand, selectedGender, stockFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -89,7 +91,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedBrand, stockFilter]);
+  }, [searchTerm, selectedBrand, selectedGender, stockFilter]);
 
   const handleDelete = async (id: string) => {
     const confirmed = await showConfirm("¿Estás seguro de eliminar este producto?", { isDestructive: true });
@@ -180,6 +182,22 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
             {brands.map(b => (
               <option key={b} value={b}>{b}</option>
             ))}
+          </select>
+
+          <select 
+            value={selectedGender}
+            onChange={(e) => {
+              const val = e.target.value;
+              startTransition(() => {
+                setSelectedGender(val);
+              });
+            }}
+            className="bg-[var(--surface-raised)] border border-[var(--border)] text-[var(--text-primary)] text-sm rounded-md px-3 py-2 outline-none focus:border-[var(--accent)]"
+          >
+            <option value="all">Todos los géneros</option>
+            <option value="Hombre">Hombre</option>
+            <option value="Mujer">Mujer</option>
+            <option value="Unisex">Unisex</option>
           </select>
 
           <select 
@@ -453,11 +471,12 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
           <p className="text-nd-body-sm text-[var(--text-disabled)] max-w-xs text-center mt-2">
             Intenta ajustar los filtros de búsqueda o stock para encontrar lo que buscas.
           </p>
-          {(searchTerm || selectedBrand !== "all" || stockFilter !== "all") && (
+          {(searchTerm || selectedBrand !== "all" || selectedGender !== "all" || stockFilter !== "all") && (
             <button 
               onClick={() => {
                 setSearchTerm("");
                 setSelectedBrand("all");
+                setSelectedGender("all");
                 setStockFilter("all");
               }}
               className="mt-6 nd-btn-ghost !min-h-fit !px-4 !py-2 border border-[var(--border)] rounded-full"
