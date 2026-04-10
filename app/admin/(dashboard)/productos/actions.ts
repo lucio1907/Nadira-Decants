@@ -57,7 +57,8 @@ export const upsertProductAction = async (
       descripcion: productData.descripcion,
       notas: productData.notas,
       imagenes: productData.imagenes,
-      ml_totales_botella: productData.mlTotalesBotella
+      ml_totales_botella: productData.mlTotalesBotella,
+      genero: productData.genero
     };
 
     let productId = id;

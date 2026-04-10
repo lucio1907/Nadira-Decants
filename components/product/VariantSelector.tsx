@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Variante } from "@/types";
 import { useCartStore } from "@/store/cart";
 import { Toast } from "@/components/ui/Toast";
-import { Check, ShoppingBag } from "lucide-react";
+import { Check, ShoppingBag, Minus, Plus } from "lucide-react";
 
 interface Props {
   productId: string;
@@ -27,10 +27,15 @@ export const VariantSelector = ({
   const [added, setAdded] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [displayPrice, setDisplayPrice] = useState(variantes[0].precio);
+  const [quantity, setQuantity] = useState(1);
   
   const addItem = useCartStore((s) => s.addItem);
-  const openCart = useCartStore((s) => s.openCart);
   const cartItems = useCartStore((s) => s.items);
+
+  // Reset quantity when variant changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [selected.ml]);
 
   // Price transition effect
   useEffect(() => {
@@ -60,20 +65,22 @@ export const VariantSelector = ({
     (item) => item.id === productId && item.variante.ml === selected.ml
   )?.quantity || 0;
 
-  const isMaxStockReached = cartQuantity >= selected.stock;
+  const maxCanAdd = selected.stock - cartQuantity;
+  const isMaxStockReached = maxCanAdd <= 0;
 
   const handleAddToCart = () => {
-    addItem({
-      id: productId,
-      slug: productSlug,
-      nombre: productName,
-      marca: productMarca,
-      imagen: productImage,
-      variante: selected,
-    });
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        id: productId,
+        slug: productSlug,
+        nombre: productName,
+        marca: productMarca,
+        imagen: productImage,
+        variante: selected,
+      });
+    }
     setAdded(true);
     setShowToast(true);
-    // openCart(); // Removed auto-open for better flow with toast
     setTimeout(() => {
       setAdded(false);
     }, 2000);
@@ -81,127 +88,246 @@ export const VariantSelector = ({
 
   return (
     <div>
-      {/* Label */}
-      <p
-        className="text-nd-label mb-4 tracking-[0.1em]"
-        style={{
-          color: "var(--text-secondary)",
-        }}
-      >
-        Tamaño
-      </p>
+      {/* Size label + stock indicator */}
+      <div className="flex items-center justify-between mb-4">
+        <p
+          className="text-nd-label tracking-[0.1em]"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          Tamaño
+        </p>
+        <div
+          className="nd-animate-fade-in flex flex-col items-end gap-1.5"
+          key={`stock-${selected.ml}-${selected.stock}`}
+        >
+          <div className="flex items-center gap-2.5">
+            {selected.stock > 0 && selected.stock <= 5 && (
+              <span 
+                className={`w-2 h-2 rounded-full ${selected.stock === 1 ? "animate-pulse" : ""}`}
+                style={{ 
+                  background: "var(--accent)",
+                  boxShadow: "0 0 10px var(--accent)",
+                }}
+              />
+            )}
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "12px",
+                color: selected.stock === 0 
+                  ? "var(--error)" 
+                  : selected.stock <= 5 
+                    ? "var(--accent)" 
+                    : "var(--text-disabled)",
+                letterSpacing: "0.08em",
+                fontWeight: selected.stock <= 5 ? 800 : 400,
+                textTransform: "uppercase"
+              }}
+            >
+              {selected.stock === 0
+                ? "Agotado temporalmente"
+                : selected.stock === 1 
+                  ? "¡Última unidad disponible!" 
+                  : selected.stock <= 5
+                    ? `Solo ${selected.stock} unidades disponibles`
+                    : `${selected.stock} unidades en stock`}
+            </p>
+          </div>
+          
+          {/* Subtle availability micro-bar for urgency */}
+          {selected.stock > 0 && selected.stock <= 10 && (
+            <div className="w-28 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+              <div 
+                className={`h-full transition-all duration-1000 ease-out ${selected.stock <= 3 ? "animate-pulse" : ""}`}
+                style={{ 
+                  width: `${Math.min((selected.stock / 10) * 100, 100)}%`,
+                  background: selected.stock <= 5 ? "var(--accent)" : "var(--text-disabled)",
+                  opacity: selected.stock <= 5 ? 1 : 0.3
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
 
-      {/* Variant Segments */}
+      {/* Variant Segments — cleaner, wider pills */}
       <div
-        className="flex flex-wrap gap-4"
-        style={{ marginBottom: "var(--space-2xl)" }}
+        className="flex flex-wrap gap-3"
+        style={{ marginBottom: "var(--space-lg)" }}
       >
         {variantes.map((v) => (
           <button
             key={v.ml}
             onClick={() => setSelected(v)}
             disabled={v.stock === 0}
-            className={`relative flex flex-col items-center justify-center transition-all duration-500 py-3 px-8 rounded-full border ${
+            className={`relative flex items-center justify-center transition-all duration-400 py-3.5 px-6 border ${
               selected.ml === v.ml 
                 ? "border-[var(--accent)] bg-[var(--accent-subtle)]" 
-                : "border-white/10 hover:border-white/30 bg-white/5"
+                : "border-[var(--border-visible)] hover:border-[var(--text-disabled)] bg-transparent"
             } ${v.stock === 0 ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
             id={`variant-${v.ml}ml`}
           >
             <span 
+              className="flex items-baseline gap-1.5"
               style={{ 
-                fontSize: "14px", 
-                fontWeight: 600, 
                 fontFamily: "var(--font-body)",
-                letterSpacing: "0.05em",
-                color: selected.ml === v.ml ? "var(--text-display)" : "var(--text-secondary)"
+                color: selected.ml === v.ml ? "var(--text-display)" : "var(--text-secondary)",
+                transition: "color 300ms ease",
               }}
             >
-              {v.ml}ML
+              <span style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-0.01em" }}>
+                {v.ml}
+              </span>
+              <span style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.7 }}>
+                ml
+              </span>
+            </span>
+
+            {/* Price under size */}
+            <span
+              className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap"
+              style={{
+                fontSize: "10px",
+                color: selected.ml === v.ml ? "var(--accent)" : "var(--text-disabled)",
+                fontFamily: "var(--font-body)",
+                transition: "color 300ms ease",
+              }}
+            >
+              ${v.precio.toLocaleString("es-AR")}
             </span>
             
-            {/* Active Glow */}
+            {/* Active indicator dot */}
             {selected.ml === v.ml && (
-              <div className="absolute inset-0 rounded-full shadow-[0_0_20px_rgba(211,176,0,0.15)] pointer-events-none" />
+              <div
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                style={{ background: "var(--accent)" }}
+              />
             )}
 
             {/* Out of stock line */}
             {v.stock === 0 && (
-              <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/20 -rotate-12 pointer-events-none" />
+              <div className="absolute top-1/2 left-2 right-2 h-[1px] bg-white/20 -rotate-12 pointer-events-none" />
             )}
           </button>
         ))}
       </div>
 
-      {/* Stock info */}
-      {selected.stock > 0 && (
-        <p
-          className="nd-animate-fade-in"
-          key={`stock-${selected.ml}-${selected.stock}`} // Re-trigger animation on change
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "12px",
-            color: "var(--accent)",
-            marginBottom: "var(--space-md)",
-            letterSpacing: "0.05em",
-            fontWeight: 400,
-          }}
-        >
-          {selected.stock === 1 
-            ? "Última unidad disponible" 
-            : `Stock: ${selected.stock} unidades disponibles`}
-        </p>
-      )}
+      {/* Spacer for price labels */}
+      <div style={{ height: "12px" }} />
 
-      {/* Price display */}
-      <div style={{ marginBottom: "var(--space-xl)" }} className="nd-animate-fade-in" key={selected.ml}>
+      {/* Price display — larger, editorial */}
+      <div className="flex items-end gap-3 mb-6" key={selected.ml}>
         <span
-          className="text-[40px] sm:text-[48px] md:text-[64px]"
           style={{
             fontFamily: "var(--font-display)",
+            fontSize: "clamp(2.5rem, 6vw, 3.5rem)",
             lineHeight: 1,
             color: "var(--text-display)",
-            fontWeight: 700,
-            letterSpacing: "-0.04em",
+            fontWeight: 600,
+            letterSpacing: "-0.03em",
           }}
         >
           ${displayPrice.toLocaleString("es-AR")}
         </span>
+        <span
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "11px",
+            color: "var(--text-disabled)",
+            letterSpacing: "0.05em",
+            paddingBottom: "6px",
+          }}
+        >
+          ARS
+        </span>
       </div>
 
-      {/* Add to cart button */}
-      <div className="relative">
+      {/* Quantity + Add to Cart — combined row */}
+      <div className="flex gap-3 items-stretch">
+        {/* Quantity selector */}
+        {!isMaxStockReached && selected.stock > 0 && (
+          <div
+            className="flex items-center gap-0 flex-shrink-0"
+            style={{ border: "1px solid var(--border-visible)" }}
+          >
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={quantity <= 1}
+              className="w-12 h-full flex items-center justify-center transition-all duration-200 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ color: "var(--text-secondary)" }}
+              aria-label="Disminuir cantidad"
+            >
+              <Minus size={14} strokeWidth={1.5} />
+            </button>
+            <div
+              className="w-12 h-full flex items-center justify-center select-none"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "var(--text-display)",
+                borderLeft: "1px solid var(--border)",
+                borderRight: "1px solid var(--border)",
+              }}
+            >
+              {quantity}
+            </div>
+            <button
+              onClick={() => setQuantity(Math.min(maxCanAdd, quantity + 1))}
+              disabled={quantity >= maxCanAdd}
+              className="w-12 h-full flex items-center justify-center transition-all duration-200 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ color: "var(--text-secondary)" }}
+              aria-label="Aumentar cantidad"
+            >
+              <Plus size={14} strokeWidth={1.5} />
+            </button>
+          </div>
+        )}
+
+        {/* Add to cart button */}
         <button
           onClick={handleAddToCart}
           disabled={selected.stock === 0 || isMaxStockReached}
-          className={`relative overflow-hidden group w-all ${added ? "bg-[var(--success)]" : (selected.stock === 0 || isMaxStockReached) ? "bg-[var(--border)] cursor-not-allowed" : "nd-btn-primary"}`}
+          className={`relative overflow-hidden group flex-1 ${
+            added 
+              ? "bg-[var(--success)] text-white" 
+              : selected.stock === 0 
+                ? "bg-transparent border border-[var(--error-subtle)]" 
+                : isMaxStockReached 
+                  ? "bg-[var(--border)] cursor-not-allowed" 
+                  : "nd-btn-primary"
+          }`}
           style={{
-            width: "100%",
-            minHeight: "64px",
+            minHeight: "56px",
             fontFamily: "var(--font-body)",
-            fontSize: "12px",
-            letterSpacing: "0.15em",
+            fontSize: "11px",
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
             fontWeight: 600,
             transition: "all 400ms cubic-bezier(0.4, 0, 0.2, 1)",
-            color: added ? "white" : (selected.stock === 0 || isMaxStockReached) ? "var(--text-disabled)" : "var(--black)",
-            borderRadius: "4px",
+            color: added 
+              ? "white" 
+              : selected.stock === 0 
+                ? "var(--error)" 
+                : isMaxStockReached 
+                  ? "var(--text-disabled)" 
+                  : "var(--black)",
           }}
           id="add-to-cart-btn"
         >
           <div className="flex items-center justify-center gap-3">
             {added ? (
               <>
-                <Check size={18} strokeWidth={3} className="nd-animate-fade-in" />
-                <span>Excelente</span>
+                <Check size={17} strokeWidth={3} className="nd-animate-fade-in" />
+                <span>Agregado</span>
               </>
             ) : selected.stock === 0 ? (
               <span>Agotado</span>
             ) : isMaxStockReached ? (
-              <span>Límite alcanzado</span>
+              <span>Stock máximo en bolso</span>
             ) : (
               <>
-                <ShoppingBag size={18} className="group-hover:scale-110 transition-transform" />
+                <ShoppingBag size={16} className="group-hover:scale-110 transition-transform" />
                 <span>Agregar al bolso</span>
               </>
             )}
@@ -214,8 +340,22 @@ export const VariantSelector = ({
         </button>
       </div>
 
+      {/* Cart quantity hint */}
+      {cartQuantity > 0 && !added && (
+        <p
+          className="mt-3 nd-animate-fade-in"
+          style={{
+            fontSize: "11px",
+            color: "var(--text-disabled)",
+            fontFamily: "var(--font-body)",
+          }}
+        >
+          Ya tenés {cartQuantity} {cartQuantity === 1 ? "unidad" : "unidades"} de {selected.ml}ml en tu bolso
+        </p>
+      )}
+
       <Toast 
-        message="Añadido al bolso" 
+        message={`${quantity > 1 ? quantity + " unidades agregadas" : "Añadido al bolso"}`}
         isVisible={showToast} 
         onClose={() => setShowToast(false)} 
       />

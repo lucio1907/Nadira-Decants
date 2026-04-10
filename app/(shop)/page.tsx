@@ -1,6 +1,6 @@
 import { getProducts } from "@/lib/products";
 import { HeroSection } from "@/components/home/HeroSection";
-import { ProductCard } from "@/components/product/ProductCard";
+import { CatalogSection } from "@/components/product/CatalogSection";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { SectionHeading } from "@/components/home/SectionHeading";
 import { AboutSection } from "@/components/home/AboutSection";
@@ -48,11 +48,7 @@ const HomePage = async () => {
             subtitle="Todos los decants son de frascos originales. Probás el perfume real, sin gastar de más."
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
-            {productos.map((producto, i) => (
-              <ProductCard key={producto.id} producto={producto} index={i} />
-            ))}
-          </div>
+          <CatalogSection productos={productos} />
         </div>
       </section>
 
@@ -82,15 +78,23 @@ const HomePage = async () => {
       {/* FAQ Section */}
       <FAQSection />
 
-      {/* CTA Section — minimal */}
+      {/* CTA Section — dramatic editorial */}
       <section
-        className="transition-colors duration-500 ease-in-out"
+        className="transition-colors duration-500 ease-in-out relative overflow-hidden"
         style={{
           background: "var(--surface)",
-          padding: "120px 0",
+          padding: "160px 0",
         }}
       >
-        <div className="container-nd text-center max-w-2xl mx-auto">
+        {/* Golden ambient glow */}
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, rgba(211, 176, 0, 0.06) 0%, transparent 70%)",
+          }}
+        />
+
+        <div className="container-nd text-center max-w-2xl mx-auto relative z-10">
           <p
             className="text-nd-label"
             style={{
@@ -100,9 +104,26 @@ const HomePage = async () => {
           >
             ¿Listo para descubrir?
           </p>
+
+          {/* Decorative line */}
+          <div
+            className="mx-auto mb-8"
+            style={{
+              width: "48px",
+              height: "1px",
+              background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+              opacity: 0.5,
+            }}
+          />
+
           <h2
-            className="text-display-md"
-            style={{ marginBottom: "var(--space-xl)", fontWeight: 400 }}
+            className="text-display-md lg:text-display-lg"
+            style={{
+              marginBottom: "var(--space-xl)",
+              fontWeight: 400,
+              fontStyle: "italic",
+              letterSpacing: "-0.02em",
+            }}
           >
             Tu fragancia ideal te espera
           </h2>

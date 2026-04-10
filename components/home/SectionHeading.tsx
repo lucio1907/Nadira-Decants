@@ -14,7 +14,7 @@ export const SectionHeading = ({
   tag,
   title,
   subtitle,
-  center = true, // By default we'll center for editorial look
+  center = true,
 }: SectionHeadingProps) => {
   return (
     <div
@@ -28,8 +28,30 @@ export const SectionHeading = ({
           </p>
         </ScrollReveal>
       )}
+
+      {/* Decorative golden line above title */}
+      <ScrollReveal delay={0.05}>
+        <div
+          className="mb-6"
+          style={{
+            width: center ? "48px" : "40px",
+            height: "1px",
+            background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+            opacity: 0.5,
+          }}
+        />
+      </ScrollReveal>
+
       <ScrollReveal delay={0.1}>
-        <h2 className="text-heading" style={{ marginBottom: subtitle ? "24px" : 0, fontWeight: 400 }}>
+        <h2
+          className="text-heading"
+          style={{
+            marginBottom: subtitle ? "24px" : 0,
+            fontWeight: 400,
+            fontStyle: "normal",
+            letterSpacing: "-0.02em",
+          }}
+        >
           {title}
         </h2>
       </ScrollReveal>

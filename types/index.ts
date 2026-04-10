@@ -21,6 +21,7 @@ export interface Producto {
   imagenes: string[];
   variantes: Variante[];
   mlTotalesBotella: number;
+  genero: 'Hombre' | 'Mujer' | 'Unisex';
 }
 
 export interface CartItem {

@@ -26,6 +26,7 @@ const emptyForm: Omit<Producto, "id"> = {
   imagenes: [],
   variantes: [{ ml: 10, precio: 0, stock: 0, costo: 0 }],
   mlTotalesBotella: 100,
+  genero: "Unisex",
 };
 
 export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) => {
@@ -33,7 +34,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   const { showAlert } = useAlert();
   const [isPending, startTransition] = useTransition();
   const [uploadingImage, setUploadingImage] = useState(false);
-  
+
   // Drag and drop state for images
   const [isDragging, setIsDragging] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -51,7 +52,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   });
 
   // Basic Handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let newValue = value;
 
@@ -66,8 +67,8 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
     setFormData(prev => ({
       ...prev,
       [name]: newValue,
-      ...(name === "nombre" && !isEdit ? { 
-        slug: newValue.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') 
+      ...(name === "nombre" && !isEdit ? {
+        slug: newValue.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       } : {})
     }));
   };
@@ -154,7 +155,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
         data.append("file", fileToUpload);
         const res = await fetch("/api/admin/upload", { method: "POST", body: data });
         const json = await res.json();
-        
+
         if (json.url) {
           setFormData(prev => ({ ...prev, imagenes: [...prev.imagenes, json.url] }));
         } else {
@@ -198,7 +199,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   const onSortOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    
+
     setFormData(prev => {
       const newImages = [...prev.imagenes];
       const item = newImages.splice(draggedIndex, 1)[0];
@@ -218,7 +219,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.variantes.length === 0) {
       showAlert("Debes agregar al menos una variante.", { type: "warning" });
       return;
@@ -226,7 +227,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
 
     startTransition(async () => {
       const result = await upsertProductAction(formData);
-      
+
       if (result.success) {
         showAlert(isEdit ? "Producto actualizado correctamente" : "Producto creado correctamente", { type: "success" });
         router.push("/admin/productos");
@@ -239,28 +240,28 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
 
   return (
     <form onSubmit={handleSubmit} className="space-y-12 pb-12">
-      <BasicInfoSection 
-        formData={formData} 
-        isEdit={isEdit} 
-        onChange={handleChange} 
-        onNumberChange={handleNumberChange} 
+      <BasicInfoSection
+        formData={formData}
+        isEdit={isEdit}
+        onChange={handleChange}
+        onNumberChange={handleNumberChange}
       />
-      
-      <VariantsSection 
-        variantes={formData.variantes} 
-        onAdd={addVariante} 
-        onRemove={removeVariante} 
-        onUpdate={updateVariante} 
+
+      <VariantsSection
+        variantes={formData.variantes}
+        onAdd={addVariante}
+        onRemove={removeVariante}
+        onUpdate={updateVariante}
       />
-      
-      <NotesSection 
-        notas={formData.notas} 
-        onChange={handleNotaChange} 
-        onAdd={addNota} 
-        onRemove={removeNota} 
+
+      <NotesSection
+        notas={formData.notas}
+        onChange={handleNotaChange}
+        onAdd={addNota}
+        onRemove={removeNota}
       />
-      
-      <ImagesSection 
+
+      <ImagesSection
         imagenes={formData.imagenes}
         isDragging={isDragging}
         uploadingImage={uploadingImage}
@@ -277,17 +278,17 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
       />
 
       <div className="flex justify-end gap-4 pt-4">
-        <button 
-          type="button" 
-          onClick={() => router.back()} 
+        <button
+          type="button"
+          onClick={() => router.back()}
           className="nd-btn-secondary"
           disabled={isPending}
         >
           Cancelar
         </button>
-        <button 
-          type="submit" 
-          className="nd-btn-primary" 
+        <button
+          type="submit"
+          className="nd-btn-primary"
           disabled={isPending || uploadingImage}
         >
           {isPending ? "Guardando..." : "Guardar Producto"}

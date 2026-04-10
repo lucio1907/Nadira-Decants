@@ -76,28 +76,67 @@ export const FAQSection = () => {
                   className="flex items-center justify-between"
                   style={{ padding: "var(--space-md) var(--space-lg)" }}
                 >
-                  <h3
-                    className="text-subheading"
+                  <div className="flex items-center gap-4">
+                    {/* Editorial numbering */}
+                    <span
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "13px",
+                        fontStyle: "italic",
+                        color: openIndex === index ? "var(--accent)" : "var(--text-disabled)",
+                        transition: "color var(--duration-normal) ease",
+                        minWidth: "28px",
+                        fontWeight: 400,
+                      }}
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <h3
+                      className="text-subheading"
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: 400,
+                        color: openIndex === index ? "var(--accent)" : "var(--text-display)",
+                        transition: "color var(--duration-normal) ease",
+                      }}
+                    >
+                      {faq.question}
+                    </h3>
+                  </div>
+
+                  {/* Elegant rotating line icon */}
+                  <div
+                    className="relative flex-shrink-0"
                     style={{
-                      fontSize: "16px",
-                      fontWeight: 400,
-                      color: openIndex === index ? "var(--accent)" : "var(--text-display)",
-                      transition: "color var(--duration-normal) ease",
+                      width: "20px",
+                      height: "20px",
                     }}
                   >
-                    {faq.question}
-                  </h3>
-                  <span
-                    style={{
-                      transform: openIndex === index ? "rotate(45deg)" : "rotate(0deg)",
-                      transition: "transform var(--duration-normal) ease",
-                      fontSize: "24px",
-                      lineHeight: 1,
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    +
-                  </span>
+                    {/* Horizontal line */}
+                    <span
+                      className="absolute top-1/2 left-1/2 block"
+                      style={{
+                        width: "14px",
+                        height: "1px",
+                        background: openIndex === index ? "var(--accent)" : "var(--text-secondary)",
+                        transform: "translate(-50%, -50%)",
+                        transition: "background var(--duration-normal) ease",
+                      }}
+                    />
+                    {/* Vertical line — rotates to 0 when open */}
+                    <span
+                      className="absolute top-1/2 left-1/2 block"
+                      style={{
+                        width: "14px",
+                        height: "1px",
+                        background: openIndex === index ? "var(--accent)" : "var(--text-secondary)",
+                        transform: openIndex === index
+                          ? "translate(-50%, -50%) rotate(0deg)"
+                          : "translate(-50%, -50%) rotate(90deg)",
+                        transition: "all var(--duration-normal) cubic-bezier(0.16, 1, 0.3, 1)",
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div
@@ -112,6 +151,7 @@ export const FAQSection = () => {
                     className="text-nd-body"
                     style={{
                       padding: "0 var(--space-lg) var(--space-md) var(--space-lg)",
+                      paddingLeft: "calc(var(--space-lg) + 44px)", // Align with question text
                       color: "var(--text-secondary)",
                       fontSize: "14px",
                     }}
