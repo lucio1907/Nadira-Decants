@@ -45,6 +45,23 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
+      <head>
+        <script
+          id="theme-initializer"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('nadira-theme');
+                  if (theme === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  }
+                } catch(e) {}
+              })();
+            `
+          }}
+        />
+      </head>
       <body
         className="min-h-screen flex flex-col font-body transition-colors duration-500"
         style={{
@@ -52,21 +69,6 @@ export default function RootLayout({
         }}
         suppressHydrationWarning
       >
-        <Script
-          id="theme-initializer"
-          strategy="beforeInteractive"
-        >
-          {`
-            (function() {
-              try {
-                var theme = localStorage.getItem('nadira-theme');
-                if (theme === 'light') {
-                  document.documentElement.setAttribute('data-theme', 'light');
-                }
-              } catch(e) {}
-            })();
-          `}
-        </Script>
         <ThemeProvider>
           <AlertProvider>
             {children}

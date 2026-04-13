@@ -27,6 +27,7 @@ const GENDER_CONFIG: { value: GenderFilter; label: string; icon: typeof Users }[
   { value: "Unisex", label: "Unisex", icon: Users },
 ];
 
+// Refined responsive search & filter experience — Nadira Decants
 export const CatalogSection = ({ productos }: CatalogSectionProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
@@ -162,9 +163,9 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
     >
       {/* ─── FILTER BAR ─── */}
       <div
-        className="relative mb-12"
+        className="relative mb-12 px-5 sm:px-8 py-7"
+        suppressHydrationWarning
         style={{
-          padding: "28px 32px",
           background: "var(--surface-raised)",
           border: "1px solid var(--border)",
           borderRadius: "2px",
@@ -202,20 +203,20 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
             />
             <input
               ref={searchInputRef}
-              type="text"
+              type="search"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Buscar por nombre, marca..."
               className="w-full bg-transparent border-none outline-none transition-all duration-300"
               style={{
                 paddingLeft: "28px",
-                paddingRight: searchQuery ? "28px" : "0",
-                paddingBottom: "10px",
-                paddingTop: "2px",
+                paddingRight: searchQuery ? "32px" : "0",
+                paddingBottom: "12px",
+                paddingTop: "4px",
                 borderBottom: "1px solid var(--border-visible)",
                 color: "var(--text-primary)",
                 fontFamily: "var(--font-body)",
-                fontSize: "13px",
+                fontSize: "14px",
                 letterSpacing: "0.02em",
               }}
               onFocus={(e) => {
@@ -228,11 +229,11 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
             {searchQuery && (
               <button
                 onClick={() => handleSearchChange("")}
-                className="absolute right-0 top-1/2 -translate-y-1/2 p-1 transition-all duration-200 hover:scale-110"
+                className="absolute right-0 top-1/2 -translate-y-1/2 p-2 transition-all duration-200 hover:scale-110 opacity-70 hover:opacity-100"
                 style={{ color: "var(--text-disabled)" }}
                 aria-label="Limpiar búsqueda"
               >
-                <X size={12} />
+                <X size={14} />
               </button>
             )}
             {/* Focus underline accent */}
@@ -328,153 +329,143 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
         {/* Row 2: Brand Chips + Gender Toggle */}
         <div className="flex flex-col gap-5">
           {/* Brand filter rail */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col gap-2">
             <span
-              className="mr-2 hidden sm:inline"
+              className="hidden sm:inline"
               style={{
                 fontFamily: "var(--font-body)",
                 fontSize: "9px",
                 letterSpacing: "0.2em",
                 textTransform: "uppercase" as const,
                 color: "var(--text-disabled)",
+                marginBottom: "4px",
               }}
             >
               Marca
             </span>
 
-            {/* "Todas" chip */}
-            <button
-              onClick={() => handleBrandSelect(null)}
-              className="transition-all duration-300"
+            <div
+              className="flex flex-nowrap sm:flex-wrap items-center gap-2 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 scrollbar-hide"
               style={{
-                padding: "6px 16px",
-                border: `1px solid ${!selectedBrand ? "var(--text-display)" : "var(--border)"}`,
-                background: !selectedBrand ? "var(--text-display)" : "transparent",
-                color: !selectedBrand ? "var(--black)" : "var(--text-secondary)",
-                fontFamily: "var(--font-body)",
-                fontSize: "10px",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase" as const,
-                cursor: "pointer",
-                fontWeight: !selectedBrand ? 600 : 400,
-              }}
-              onMouseEnter={(e) => {
-                if (selectedBrand) {
-                  e.currentTarget.style.borderColor = "var(--border-visible)";
-                  e.currentTarget.style.color = "var(--text-primary)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedBrand) {
-                  e.currentTarget.style.borderColor = "var(--border)";
-                  e.currentTarget.style.color = "var(--text-secondary)";
-                }
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
               }}
             >
-              Todas
-            </button>
-
-            {brands.map((brand) => (
+              {/* "Todas" chip */}
               <button
-                key={brand}
-                onClick={() => handleBrandSelect(selectedBrand === brand ? null : brand)}
-                className="transition-all duration-300"
+                onClick={() => handleBrandSelect(null)}
+                className="shrink-0 transition-all duration-300"
                 style={{
                   padding: "6px 16px",
-                  border: `1px solid ${selectedBrand === brand ? "var(--text-display)" : "var(--border)"}`,
-                  background: selectedBrand === brand ? "var(--text-display)" : "transparent",
-                  color: selectedBrand === brand ? "var(--black)" : "var(--text-secondary)",
+                  border: `1px solid ${!selectedBrand ? "var(--text-display)" : "var(--border)"}`,
+                  background: !selectedBrand ? "var(--text-display)" : "transparent",
+                  color: !selectedBrand ? "var(--black)" : "var(--text-secondary)",
                   fontFamily: "var(--font-body)",
                   fontSize: "10px",
                   letterSpacing: "0.12em",
                   textTransform: "uppercase" as const,
                   cursor: "pointer",
-                  fontWeight: selectedBrand === brand ? 600 : 400,
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedBrand !== brand) {
-                    e.currentTarget.style.borderColor = "var(--border-visible)";
-                    e.currentTarget.style.color = "var(--text-primary)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedBrand !== brand) {
-                    e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.color = "var(--text-secondary)";
-                  }
+                  fontWeight: !selectedBrand ? 600 : 400,
                 }}
               >
-                {brand}
+                Todas
               </button>
-            ))}
+
+              {brands.map((brand) => (
+                <button
+                  key={brand}
+                  onClick={() => handleBrandSelect(selectedBrand === brand ? null : brand)}
+                  className="shrink-0 transition-all duration-300"
+                  style={{
+                    padding: "6px 16px",
+                    border: `1px solid ${selectedBrand === brand ? "var(--text-display)" : "var(--border)"}`,
+                    background: selectedBrand === brand ? "var(--text-display)" : "transparent",
+                    color: selectedBrand === brand ? "var(--black)" : "var(--text-secondary)",
+                    fontFamily: "var(--font-body)",
+                    fontSize: "10px",
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase" as const,
+                    cursor: "pointer",
+                    fontWeight: selectedBrand === brand ? 600 : 400,
+                  }}
+                >
+                  {brand}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Gender segmented control */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col gap-2">
             <span
-              className="mr-2 hidden sm:inline"
+              className="hidden sm:inline"
               style={{
                 fontFamily: "var(--font-body)",
                 fontSize: "9px",
                 letterSpacing: "0.2em",
                 textTransform: "uppercase" as const,
                 color: "var(--text-disabled)",
+                marginBottom: "4px",
               }}
             >
               Género
             </span>
 
-            {GENDER_CONFIG.map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => handleGenderSelect(value)}
-                className="flex items-center gap-1.5 transition-all duration-300"
-                style={{
-                  padding: "6px 14px",
-                  border: `1px solid ${selectedGender === value ? "var(--accent)" : "var(--border)"}`,
-                  background: selectedGender === value ? "var(--accent-subtle)" : "transparent",
-                  color: selectedGender === value ? "var(--accent)" : "var(--text-secondary)",
-                  fontFamily: "var(--font-body)",
-                  fontSize: "10px",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase" as const,
-                  cursor: "pointer",
-                  fontWeight: selectedGender === value ? 600 : 400,
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedGender !== value) {
-                    e.currentTarget.style.borderColor = "rgba(211, 176, 0, 0.3)";
-                    e.currentTarget.style.color = "var(--text-primary)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedGender !== value) {
-                    e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.color = "var(--text-secondary)";
-                  }
-                }}
-              >
-                <Icon size={10} strokeWidth={2.5} />
-                {label}
-              </button>
-            ))}
+            <div className="flex flex-wrap items-center gap-2">
+              {GENDER_CONFIG.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  onClick={() => handleGenderSelect(value)}
+                  className="flex items-center gap-1.5 transition-all duration-300"
+                  style={{
+                    padding: "6px 14px",
+                    border: `1px solid ${selectedGender === value ? "var(--accent)" : "var(--border)"}`,
+                    background: selectedGender === value ? "var(--accent-subtle)" : "transparent",
+                    color: selectedGender === value ? "var(--accent)" : "var(--text-secondary)",
+                    fontFamily: "var(--font-body)",
+                    fontSize: "10px",
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase" as const,
+                    cursor: "pointer",
+                    fontWeight: selectedGender === value ? 600 : 400,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedGender !== value) {
+                      e.currentTarget.style.borderColor = "rgba(211, 176, 0, 0.3)";
+                      e.currentTarget.style.color = "var(--text-primary)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedGender !== value) {
+                      e.currentTarget.style.borderColor = "var(--border)";
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                    }
+                  }}
+                >
+                  <Icon size={12} strokeWidth={2.5} />
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Active filter summary + clear */}
         {hasActiveFilters && (
           <div
-            className="flex items-center justify-between mt-5 pt-5"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-5 pt-5 gap-4"
             style={{
               borderTop: "1px solid var(--border)",
             }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <span
                 style={{
                   fontFamily: "var(--font-body)",
                   fontSize: "11px",
                   color: "var(--text-disabled)",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {filteredProducts.length}
@@ -499,10 +490,10 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
                     &ldquo;{searchQuery.trim()}&rdquo;
                     <button
                       onClick={() => handleSearchChange("")}
-                      className="ml-0.5 hover:scale-110 transition-transform"
+                      className="ml-0.5 hover:scale-110 transition-transform p-1"
                       aria-label="Quitar filtro de búsqueda"
                     >
-                      <X size={8} />
+                      <X size={10} />
                     </button>
                   </span>
                 )}
@@ -522,10 +513,10 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
                     {selectedBrand}
                     <button
                       onClick={() => handleBrandSelect(null)}
-                      className="ml-0.5 hover:scale-110 transition-transform"
+                      className="ml-0.5 hover:scale-110 transition-transform p-1"
                       aria-label="Quitar filtro de marca"
                     >
-                      <X size={8} />
+                      <X size={10} />
                     </button>
                   </span>
                 )}
@@ -545,10 +536,10 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
                     {selectedGender}
                     <button
                       onClick={() => handleGenderSelect("todos")}
-                      className="ml-0.5 hover:scale-110 transition-transform"
+                      className="ml-0.5 hover:scale-110 transition-transform p-1"
                       aria-label="Quitar filtro de género"
                     >
-                      <X size={8} />
+                      <X size={10} />
                     </button>
                   </span>
                 )}

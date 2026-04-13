@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { PhoneIcon } from "lucide-react";
 
 // Helper components for icons to ensure they work regardless of package versions
 const InstagramIcon = ({ size = 24, strokeWidth = 1.5, className = "" }) => (
@@ -75,7 +76,8 @@ export const Footer = () => {
               className="text-nd-body-sm max-w-xs leading-loose"
               style={{ color: "var(--text-secondary)", fontSize: "14px", fontWeight: 300 }}
             >
-              Curamos las fragancias más exclusivas del mundo, permitiéndote explorar el lujo gota a gota. Maison de Parfums & Decants de Autor.
+              Selecciono perfumes que realmente valen la pena,
+              para que los puedas probar antes de decidir.
             </p>
             <div className="flex items-center gap-3 mt-2">
               {footerLinks.social.map((social) => {
@@ -135,15 +137,15 @@ export const Footer = () => {
           {/* Our Promise - 4 columns */}
           <div className="lg:col-span-4 flex flex-col gap-8">
             <div className="flex flex-col gap-6">
-              <h4 className="text-nd-label text-[var(--accent)] mb-2">Nuestra Promesa</h4>
+              <h4 className="text-nd-label text-[var(--accent)] mb-2">Mi compromiso</h4>
               <ul className="flex flex-col gap-6">
                 <li className="flex gap-4 group">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full border border-[var(--border)] transition-all duration-500 group-hover:border-[var(--accent)] flex items-center justify-center text-[var(--accent)]">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                   </div>
                   <div>
-                    <h5 className="text-[12px] font-medium uppercase tracking-widest text-[var(--text-display)] mb-1">100% Original</h5>
-                    <p className="text-[13px] text-[var(--text-secondary)] font-light leading-relaxed">Garantía total de autenticidad en cada gota.</p>
+                    <h5 className="text-[12px] font-medium uppercase tracking-widest text-[var(--text-display)] mb-1">Originales</h5>
+                    <p className="text-[13px] text-[var(--text-secondary)] font-light leading-relaxed">Todos los perfumes son de frascos originales. Probás exactamente lo que comprarías en tamaño completo.</p>
                   </div>
                 </li>
                 <li className="flex gap-4 group">
@@ -151,8 +153,8 @@ export const Footer = () => {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="13" x="4" y="5" rx="2" /><path d="m4 9 8 5 8-5" /></svg>
                   </div>
                   <div>
-                    <h5 className="text-[12px] font-medium uppercase tracking-widest text-[var(--text-display)] mb-1">Envíos Asegurados</h5>
-                    <p className="text-[13px] text-[var(--text-secondary)] font-light leading-relaxed">Despachos diarios a todo el país.</p>
+                    <h5 className="text-[12px] font-medium uppercase tracking-widest text-[var(--text-display)] mb-1">Envíos a todo el país</h5>
+                    <p className="text-[13px] text-[var(--text-secondary)] font-light leading-relaxed">Realizo envíos a todo el país a través de correo, con seguimiento para que sepas dónde está tu pedido.</p>
                   </div>
                 </li>
                 <li className="flex gap-4 group">
@@ -160,8 +162,8 @@ export const Footer = () => {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z" /><path d="M12 2a10 10 0 0 1 10 10h-10V2z" /><path d="M12 12L2.8 2.2" /><path d="M12 12L19.8 4.2" /></svg>
                   </div>
                   <div>
-                    <h5 className="text-[12px] font-medium uppercase tracking-widest text-[var(--text-display)] mb-1">Experiencia Curada</h5>
-                    <p className="text-[13px] text-[var(--text-secondary)] font-light leading-relaxed">Asesoramiento premium personalizado.</p>
+                    <h5 className="text-[12px] font-medium uppercase tracking-widest text-[var(--text-display)] mb-1">Asesoramiento</h5>
+                    <p className="text-[13px] text-[var(--text-secondary)] font-light leading-relaxed">Si no sabés cuál elegir, podés escribirme y te ayudo según lo que te guste y lo que estés buscando.</p>
                   </div>
                 </li>
               </ul>
@@ -170,11 +172,11 @@ export const Footer = () => {
             <div className="flex flex-col gap-3 pt-2">
               <div className="flex items-center gap-3 text-nd-body-sm" style={{ color: "var(--text-secondary)" }}>
                 <MailIcon size={14} strokeWidth={1.5} className="text-[var(--accent)]" />
-                <span>contacto@nadiradecants.com</span>
+                <a href="mailto:nadira.beauty.baradero@gmail.com">nadira.beauty.baradero@gmail.com</a>
               </div>
               <div className="flex items-center gap-3 text-nd-body-sm" style={{ color: "var(--text-secondary)" }}>
-                <ClockIcon size={14} strokeWidth={1.5} className="text-[var(--accent)]" />
-                <span>Atención: Lun - Vie, 10:00 - 19:00</span>
+                <PhoneIcon size={14} strokeWidth={1.5} className="text-[var(--accent)]" />
+                <a href='https://wa.me/5493329516307?text=Hola!%20Quiero%20recibir%20asesoramiento%20sobre%20cu%C3%A1l%20podr%C3%ADa%20ser%20la%20mejor%20opci%C3%B3n%20para%20m%C3%AD' target="_blank">+54 9 3329 51-6307</a>
               </div>
             </div>
           </div>
@@ -201,7 +203,7 @@ export const Footer = () => {
 
           <div className="order-3">
             <p className="text-[10px] uppercase tracking-widest text-[var(--text-disabled)] font-body">
-              Maison de Parfums · Buenos Aires
+              Baradero · Pcia. de Buenos Aires
             </p>
           </div>
         </div>
