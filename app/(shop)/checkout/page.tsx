@@ -36,7 +36,6 @@ const CheckoutPage = () => {
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
 
-
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     metodo: "retiro",
     nombre: "",
@@ -106,7 +105,6 @@ const CheckoutPage = () => {
 
   const baseTotal = Math.max(0, subtotal - discount);
   const transferDiscount = paymentMethodMode === 'transferencia' ? baseTotal * 0.10 : 0;
-
 
 
   const total = Math.max(0, baseTotal - transferDiscount + shippingCost);
