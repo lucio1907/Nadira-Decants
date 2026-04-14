@@ -182,10 +182,10 @@ const ProductoPage = async ({
                         ) : (
                           <Users size={13} className="text-nd-accent opacity-80" strokeWidth={2.5} />
                         )}
-                        <span 
+                        <span
                           className="text-[10px] font-bold tracking-[0.05em] uppercase py-0.5 px-2 rounded-sm"
-                          style={{ 
-                            background: "var(--accent-subtle)", 
+                          style={{
+                            background: "var(--accent-subtle)",
                             color: "var(--accent)",
                             border: "1px solid rgba(211, 176, 0, 0.2)"
                           }}
@@ -301,7 +301,7 @@ const ProductoPage = async ({
                     </div>
                     <div>
                       <p className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>Envío Nacional</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: "var(--text-disabled)" }}>Correo Argentino / Andreani</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: "var(--text-disabled)" }}>Correo Argentino</p>
                     </div>
                   </div>
                 </div>

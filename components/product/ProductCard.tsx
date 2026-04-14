@@ -27,7 +27,7 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
   const GenderIcon = producto.genero === "Hombre" ? Mars : producto.genero === "Mujer" ? Venus : Users;
 
   return (
-    <ScrollReveal delay={index * 0.1}>
+    <ScrollReveal delay={(index % 4) * 0.1} duration={800}>
       <Link href={`/producto/${producto.slug}`} className="block group h-full">
         <div
           ref={cardRef}
