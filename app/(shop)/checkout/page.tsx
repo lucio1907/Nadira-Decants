@@ -35,6 +35,7 @@ const CheckoutPage = () => {
   const [isProcessingTransfer, setIsProcessingTransfer] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
+
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     metodo: "retiro",
     nombre: "",
@@ -106,6 +107,7 @@ const CheckoutPage = () => {
   const baseTotal = Math.max(0, subtotal - discount);
   const transferDiscount = paymentMethodMode === 'transferencia' ? baseTotal * 0.10 : 0;
 
+
   const total = Math.max(0, baseTotal - transferDiscount + shippingCost);
 
   const handleTransferCheckout = async () => {
@@ -118,6 +120,7 @@ const CheckoutPage = () => {
           items,
           shippingInfo,
           shippingCost,
+
           couponCode: couponData?.code,
           orderId: createdOrderId
         })
@@ -488,6 +491,7 @@ Adjunto el comprobante de pago a continuación.`;
                       total={total}
                       shippingInfo={shippingInfo}
                       shippingCost={shippingCost}
+
                       couponData={couponData}
                       existingOrderId={createdOrderId}
                       onOrderCreated={setCreatedOrderId}
@@ -508,6 +512,7 @@ Adjunto el comprobante de pago a continuación.`;
                           <p className="text-sm text-[var(--text-primary)]">Alias: <strong>Nadira.decants</strong></p>
                           <p className="text-sm text-[var(--text-primary)]">CBU: <strong>0000003100057973739017</strong></p>
                           <p className="text-sm text-[var(--text-primary)]">Titular: <strong>Daniela Fernanda Arrieta</strong></p>
+
                         </div>
                       </div>
 
