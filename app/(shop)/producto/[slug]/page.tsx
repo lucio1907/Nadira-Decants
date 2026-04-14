@@ -255,7 +255,7 @@ const ProductoPage = async ({
                   productSlug={producto.slug}
                   productName={producto.nombre}
                   productMarca={producto.marca}
-                  productImage={producto.imagenes[0] || ""}
+                  productImage={producto.imagenes?.find(Boolean) || ""}
                   variantes={producto.variantes}
                 />
               </div>

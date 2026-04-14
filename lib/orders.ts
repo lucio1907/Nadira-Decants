@@ -63,6 +63,13 @@ export async function getOrders(): Promise<Order[]> {
 export async function updateOrderStatus(orderId: string, status: Order["status"], trackingNumber?: string) {
   const supabase = await createAdminClient();
   
+  // Fetch current order to check previous status
+  const { data: currentOrder } = await supabase
+    .from("ordenes")
+    .select("status, items, cupon_id")
+    .eq("id", orderId)
+    .single();
+
   const updateData: Database["public"]["Tables"]["ordenes"]["Update"] = { 
     status, 
     updated_at: new Date().toISOString() 
@@ -80,6 +87,47 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
   if (error) {
     console.error("Error updating order status:", error);
     throw error;
+  }
+
+  // Handle stock and coupon logic when approving an order manually
+  if (currentOrder && status === "approved" && 
+      !["approved", "shipped", "delivered"].includes(currentOrder.status)) {
+    
+    // 1. Update stock for each variant
+    if (currentOrder.items) {
+      for (const item of (currentOrder.items as any[])) {
+         const { data: varianteData } = await supabase
+           .from("variantes")
+           .select("id, stock")
+           .eq("producto_id", item.id)
+           .eq("ml", item.variante.ml)
+           .single();
+
+         if (varianteData) {
+           const currentStock = varianteData.stock || 0;
+           await supabase
+             .from("variantes")
+             .update({ stock: Math.max(0, currentStock - item.quantity) })
+             .eq("id", varianteData.id);
+         }
+      }
+    }
+
+    // 2. Increment coupon usage if exists
+    if (currentOrder.cupon_id) {
+      const { data: currentCoupon } = await supabase
+        .from("cupones")
+        .select("usos_actuales")
+        .eq("id", currentOrder.cupon_id)
+        .single();
+      
+      if (currentCoupon) {
+        await supabase
+          .from("cupones")
+          .update({ usos_actuales: (currentCoupon.usos_actuales || 0) + 1 })
+          .eq("id", currentOrder.cupon_id);
+      }
+    }
   }
 
   return true;

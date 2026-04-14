@@ -70,7 +70,7 @@ export const ImagesSection = ({
 
         <div className="p-6">
           <div className="flex flex-wrap gap-4">
-            {imagenes.map((img, i) => (
+            {imagenes.filter(Boolean).map((img, i) => (
               <div 
                 key={img + i}
                 draggable

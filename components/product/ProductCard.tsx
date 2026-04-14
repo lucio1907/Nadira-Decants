@@ -99,7 +99,7 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
             <div 
               className={`relative z-10 flex items-center justify-center w-full h-full ${isOutOfStock ? "grayscale opacity-40" : ""}`}
             >
-              {producto.imagenes && producto.imagenes.length > 0 ? (
+              {producto.imagenes?.[0] ? (
                 <Image
                   src={producto.imagenes[0]}
                   alt={producto.nombre}

@@ -11,16 +11,18 @@ interface Props {
   shippingInfo: ShippingInfo;
   shippingCost: number;
   couponData?: { code: string; discount: number; couponId: string } | null;
+  existingOrderId?: string | null;
+  onOrderCreated?: (orderId: string) => void;
 }
 
-export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponData }: Props) => {
+export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponData, existingOrderId, onOrderCreated }: Props) => {
 
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [loadingPreference, setLoadingPreference] = useState(false);
-  
+
   // Usar refs para evitar ciclos de re-renderizado innecesarios
   const lastPayloadRef = useRef<string>("");
   const isFetchingRef = useRef(false);
@@ -41,7 +43,7 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
 
     const fetchPreference = async () => {
       const currentPayload = JSON.stringify({ cart, shippingInfo, shippingCost, couponCode: couponData?.code });
-      
+
       // Evitar re-fetch si los datos no cambiaron o si ya hay una petición en vuelo
       if (currentPayload === lastPayloadRef.current || isFetchingRef.current) return;
 
@@ -49,22 +51,22 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
         isFetchingRef.current = true;
         setLoadingPreference(true);
         setError(null);
-        
+
         const res = await fetch("/api/create-preference", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            items: cart, 
-            shippingInfo, 
-            shippingCost, 
-            orderId: currentOrderIdRef.current,
-            couponCode: couponData?.code 
+          body: JSON.stringify({
+            items: cart,
+            shippingInfo,
+            shippingCost,
+            orderId: existingOrderId || currentOrderIdRef.current,
+            couponCode: couponData?.code
           }),
         });
 
 
         const data = await res.json();
-        
+
         if (!res.ok) {
           throw new Error(data.error || "Error al crear la preferencia de pago");
         }
@@ -73,6 +75,10 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
         currentOrderIdRef.current = data.orderId;
         setPreferenceId(data.preferenceId);
         setOrderId(data.orderId);
+        
+        if (onOrderCreated && data.orderId) {
+          onOrderCreated(data.orderId);
+        }
       } catch (err: any) {
         console.error("Fetch Preference Error:", err);
         setError(err.message || "Error al conectar con Mercado Pago");
@@ -86,19 +92,35 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
   }, [cart, shippingInfo, shippingCost, couponData]); // Solo re-ejecutar si cambian los inputs del usuario
 
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (brickResponse: any) => {
+    const { formData, selectedPaymentMethod } = brickResponse;
+
+    // Caso especial: Mercado Pago Wallet
+    // No genera formData porque se resuelve mediante redirección interna del Brick
+    if (selectedPaymentMethod === 'wallet_purchase') {
+      console.log("Wallet purchase selected, letting the Brick handle the redirect...");
+      return; 
+    }
+
     setProcessing(true);
     setError(null);
+
+    if (!formData || !formData.payment_method_id) {
+      console.error("Incomplete data from Payment Brick:", brickResponse);
+      setError("Error interno: Datos de pago incompletos");
+      setProcessing(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/process-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          formData, 
-          orderId, 
+        body: JSON.stringify({
+          formData,
+          orderId: existingOrderId || currentOrderIdRef.current,
           totalAmount: total,
-          payerEmail: shippingInfo.email 
+          payerEmail: shippingInfo.email
         }),
       });
 

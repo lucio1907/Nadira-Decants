@@ -109,14 +109,24 @@ export const CartSidebar = () => {
                 >
                   {/* Product Image */}
                   <div className="w-24 h-24 bg-[var(--surface-raised)] border border-[var(--border)] rounded flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                    <Image 
-                      src={item.imagen} 
-                      alt={item.nombre}
-                      fill
-                      sizes="96px"
-                      quality={85}
-                      className="p-2 object-contain opacity-90 transition-transform duration-700 group-hover:scale-110"
-                    />
+                    {item.imagen ? (
+                      <Image 
+                        src={item.imagen} 
+                        alt={item.nombre}
+                        fill
+                        sizes="96px"
+                        quality={85}
+                        className="p-2 object-contain opacity-90 transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[var(--text-disabled)] opacity-40">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                          <line x1="3" y1="6" x2="21" y2="6" />
+                          <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
                   </div>
 

@@ -31,6 +31,9 @@ const CheckoutPage = () => {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<"shipping" | "payment">("shipping");
   const [shippingMethod, setShippingMethod] = useState<"retiro" | "envio">("retiro");
+  const [paymentMethodMode, setPaymentMethodMode] = useState<"mp" | "transferencia">("transferencia");
+  const [isProcessingTransfer, setIsProcessingTransfer] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     metodo: "retiro",
@@ -100,7 +103,50 @@ const CheckoutPage = () => {
     );
   }, [shippingMethod, shippingInfo.codigoPostal, shippingInfo.provincia, subtotal, discount]);
 
-  const total = Math.max(0, subtotal - discount + shippingCost);
+  const baseTotal = Math.max(0, subtotal - discount);
+  const transferDiscount = paymentMethodMode === 'transferencia' ? baseTotal * 0.10 : 0;
+  
+  const total = Math.max(0, baseTotal - transferDiscount + shippingCost);
+
+  const handleTransferCheckout = async () => {
+    try {
+      setIsProcessingTransfer(true);
+      const res = await fetch('/api/create-transfer-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          items, 
+          shippingInfo, 
+          shippingCost, 
+          couponCode: couponData?.code,
+          orderId: createdOrderId
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      // Limpiar carrito (se importó al inicio const clearCart = useCartStore(s => s.clearCart))
+      useCartStore.getState().clearCart();
+
+      // Armar mensaje para WhatsApp
+      const msg = `¡Hola! Vengo a finalizar mi compra abonando por Transferencia Bancaria.
+Orden Nro: #${data.orderId.slice(-8).toUpperCase()}
+Total a transferir: $${data.totalAmount.toLocaleString('es-AR')}
+
+Adjunto el comprobante de pago a continuación.`;
+
+      const waParams = new URLSearchParams({ text: msg });
+      const waLogLink = `https://wa.me/5493329516307?${waParams.toString()}`;
+
+      window.location.href = waLogLink;
+    } catch (err) {
+      console.error(err);
+      alert('Hubo un error al generar la orden por transferencia. Por favor intentá nuevamente.');
+      setIsProcessingTransfer(false);
+    }
+  };
 
 
   const isFormValid = useMemo(() => {
@@ -420,13 +466,59 @@ const CheckoutPage = () => {
                   >
                     Método de pago
                   </h2>
-                  <PaymentBrick 
-                    cart={items} 
-                    total={total} 
-                    shippingInfo={shippingInfo} 
-                    shippingCost={shippingCost} 
-                    couponData={couponData}
-                  />
+
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <button
+                      onClick={() => setPaymentMethodMode("mp")}
+                      className={`nd-segment ${paymentMethodMode === "mp" ? "nd-segment-active" : ""}`}
+                    >
+                      Mercado Pago (Tarjetas / Dinero)
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethodMode("transferencia")}
+                      className={`nd-segment ${paymentMethodMode === "transferencia" ? "nd-segment-active" : ""}`}
+                    >
+                      Transferencia (-10% OFF)
+                    </button>
+                  </div>
+
+                  {paymentMethodMode === "mp" ? (
+                    <PaymentBrick 
+                      cart={items} 
+                      total={total} 
+                      shippingInfo={shippingInfo} 
+                      shippingCost={shippingCost} 
+                      couponData={couponData}
+                      existingOrderId={createdOrderId}
+                      onOrderCreated={setCreatedOrderId}
+                    />
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="p-6 bg-[var(--surface-raised)] border border-[var(--border)] rounded-xl space-y-4">
+                        <h3 className="text-sm font-display text-[var(--accent)] mb-2">Pasos para finalizar por transferencia:</h3>
+                        <ol className="list-decimal pl-4 space-y-2 text-sm text-[var(--text-secondary)] font-body">
+                          <li>Copia nuestros datos bancarios (debajo).</li>
+                          <li>Haz clic en &quot;Confirmar compra por WhatsApp&quot;. Se te redirigirá a nuestro WhatsApp con un mensaje pre-armado y tu número de orden.</li>
+                          <li>Realiza la transferencia por un total de <strong>${total.toLocaleString('es-AR')}</strong>.</li>
+                          <li><strong className="text-[var(--text-primary)]">Envíanos el comprobante</strong> por WhatsApp, debajo del mensaje que se ha enviado.</li>
+                        </ol>
+
+                        <div className="my-6 p-4 bg-black/40 border border-[var(--border-visible)] rounded-lg">
+                          <p className="text-[10px] text-[var(--text-disabled)] tracking-wider uppercase mb-1">Datos Bancarios</p>
+                          <p className="text-sm text-[var(--text-primary)]">Alias: <strong>NADIRA.DECANTS.MP</strong></p>
+                          <p className="text-sm text-[var(--text-primary)]">Titular: Nadira Decants S.A.</p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleTransferCheckout}
+                        disabled={isProcessingTransfer}
+                        className="nd-btn-primary w-full"
+                      >
+                        {isProcessingTransfer ? "Procesando..." : "Confirmar compra por WhatsApp"}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
               </div>
@@ -524,9 +616,18 @@ const CheckoutPage = () => {
 
               {discount > 0 && (
                 <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
-                  <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento</span>
+                  <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento Cupón</span>
                   <span style={{ fontSize: "13px", color: "var(--success)" }}>
                     -${discount.toLocaleString("es-AR")}
+                  </span>
+                </div>
+              )}
+
+              {paymentMethodMode === 'transferencia' && transferDiscount > 0 && (
+                <div className="flex justify-between items-center" style={{ marginBottom: '8px' }}>
+                  <span className="text-nd-label" style={{ fontSize: '9px', color: 'var(--success)' }}>Descuento Transferencia (10%)</span>
+                  <span style={{ fontSize: "13px", color: "var(--success)" }}>
+                    -${transferDiscount.toLocaleString("es-AR")}
                   </span>
                 </div>
               )}

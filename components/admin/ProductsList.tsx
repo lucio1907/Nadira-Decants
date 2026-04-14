@@ -273,7 +273,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
 
                 <div className="relative">
                   <div className="aspect-[4/5] bg-[var(--surface-raised)] rounded-sm overflow-hidden mb-4 relative">
-                    {p.imagenes && p.imagenes[0] ? (
+                    {p.imagenes?.[0] ? (
                       <Image 
                         src={p.imagenes[0]} 
                         alt={p.nombre} 
@@ -360,7 +360,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded bg-[var(--surface-raised)] overflow-hidden relative border border-[var(--border)]">
-                            {p.imagenes && p.imagenes[0] ? (
+                            {p.imagenes?.[0] ? (
                               <Image src={p.imagenes[0]} alt={p.nombre} fill className="object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-[var(--text-disabled)]"><Package size={16} /></div>

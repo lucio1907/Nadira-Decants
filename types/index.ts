@@ -67,7 +67,7 @@ export interface Order {
   id?: string;
   items: CartItem[];
   total: number;
-  status: "pending" | "approved" | "rejected" | "in_process" | "shipped" | "delivered";
+  status: "pending" | "approved" | "rejected" | "in_process" | "shipped" | "delivered" | "whatsapp";
   mpPaymentId?: string;
   payerEmail?: string;
   metodoEntrega?: "retiro" | "envio";

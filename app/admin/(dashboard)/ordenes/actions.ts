@@ -19,6 +19,7 @@ export async function updateOrderAction(
     revalidatePath("/admin/ordenes", "page");
     revalidatePath("/admin/estadisticas", "page");
     revalidateTag("ordenes", "max");
+    revalidateTag("productos", "max");
     
     return { success: true };
   } catch (error) {

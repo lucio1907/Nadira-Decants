@@ -20,7 +20,8 @@ import {
   CreditCard,
   DollarSign,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  MessageCircle
 } from "lucide-react";
 import { useAlert } from "@/hooks/useAlert";
 import { updateOrderAction } from "@/app/admin/(dashboard)/ordenes/actions";
@@ -108,6 +109,7 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
       case "delivered": return "Entregado";
       case "rejected": return "Rechazado";
       case "in_process": return "En proceso";
+      case "whatsapp": return "WhatsApp (Transf.)";
       default: return status;
     }
   };
@@ -120,6 +122,7 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
       case "delivered": return "bg-purple-500/10 text-purple-500 border-purple-500/20";
       case "rejected": return "bg-red-500/10 text-red-500 border-red-500/20";
       case "in_process": return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
+      case "whatsapp": return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
       default: return "bg-gray-500/10 text-gray-400 border-gray-500/20";
     }
   };
@@ -131,6 +134,7 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
       case "shipped": return <Truck size={14} />;
       case "delivered": return <Package size={14} />;
       case "rejected": return <XCircle size={14} />;
+      case "whatsapp": return <MessageCircle size={14} />;
       default: return <Clock size={14} />;
     }
   };
@@ -228,7 +232,7 @@ Email: ${order.payerEmail}
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto w-full xl:w-auto pb-2 xl:pb-0 scrollbar-hide">
-          {["all", "pending", "approved", "shipped", "delivered", "rejected"].map((s) => (
+          {["all", "whatsapp", "pending", "approved", "shipped", "delivered", "rejected"].map((s) => (
             <button
               key={s}
               onClick={() => {
@@ -242,7 +246,7 @@ Email: ${order.payerEmail}
                 : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
-              {s === "all" ? "Todos" : s === "pending" ? "Pendientes" : s === "approved" ? "Aprobados" : s === "shipped" ? "Enviados" : s === "delivered" ? "Entregados" : "Rechazados"}
+              {s === "all" ? "Todos" : s === "whatsapp" ? "WhatsApp" : s === "pending" ? "Pendientes" : s === "approved" ? "Aprobados" : s === "shipped" ? "Enviados" : s === "delivered" ? "Entregados" : "Rechazados"}
             </button>
           ))}
         </div>
@@ -581,6 +585,18 @@ Email: ${order.payerEmail}
                         >
                           RECHAZADO
                           {selectedOrder.status === "rejected" && <XCircle size={14} />}
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateStatus(selectedOrder.id!, "whatsapp")}
+                          disabled={isLoading || selectedOrder.status === "whatsapp"}
+                          className={`flex items-center justify-between px-4 py-2.5 rounded-xl border text-[11px] uppercase tracking-widest font-body transition-all ${
+                            selectedOrder.status === "whatsapp" 
+                            ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-500" 
+                            : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:border-emerald-500/50 hover:text-emerald-500"
+                          }`}
+                        >
+                          WHATSAPP (PENDIENTE)
+                          {selectedOrder.status === "whatsapp" && <MessageCircle size={14} />}
                         </button>
                       </div>
                     </div>

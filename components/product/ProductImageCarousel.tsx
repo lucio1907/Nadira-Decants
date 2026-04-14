@@ -78,7 +78,7 @@ export const ProductImageCarousel = ({ imagenes, nombre }: Props) => {
         className="flex w-full flex-1 overflow-x-auto snap-x snap-mandatory no-scrollbar"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {imagenes.map((src, idx) => (
+        {imagenes.filter(Boolean).map((src, idx) => (
           <div
             key={idx}
             className="relative flex-shrink-0 w-full h-full snap-start flex items-center justify-center"

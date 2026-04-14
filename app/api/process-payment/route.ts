@@ -5,13 +5,32 @@ import { getMercadoPagoToken } from "@/lib/mercadopago-server";
 
 export const POST = async (request: NextRequest) => {
   try {
-    const { formData, orderId, totalAmount, payerEmail } = await request.json();
+    const body = await request.json();
+    let { formData, orderId, totalAmount, payerEmail } = body;
+
+    // Log the incoming data for debugging
+    console.log("Processing payment for order:", orderId);
+    
+    // Defensive check: sometimes the payload arrives nested if the frontend logic changes
+    if (formData && !formData.payment_method_id && formData.formData) {
+      console.log("Detected nested formData, unrolling...");
+      formData = formData.formData;
+    }
 
     if (!formData || !orderId || !totalAmount) {
+      console.error("Missing required payment fields:", { hasFormData: !!formData, orderId, totalAmount });
       return NextResponse.json(
         { error: "Datos de pago incompletos" },
         { status: 400 }
       );
+    }
+
+    if (!formData.payment_method_id) {
+       console.error("Payment method ID is missing in formData. Full formData:", JSON.stringify(formData, null, 2));
+       return NextResponse.json(
+         { error: "El método de pago es requerido o no es válido" },
+         { status: 400 }
+       );
     }
 
     const accessToken = await getMercadoPagoToken();
