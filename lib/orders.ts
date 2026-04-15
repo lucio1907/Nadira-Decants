@@ -136,6 +136,7 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     // We do this asynchronously so we don't block the UI/Response
     sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
 
+
   }
 
   return true;
