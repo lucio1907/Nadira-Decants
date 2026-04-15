@@ -14,16 +14,16 @@ export const mapOrder = (order: DBOrder): Order => ({
   status: order.status as Order["status"],
   mpPaymentId: order.mp_payment_id || undefined,
   payerEmail: order.payer_email || undefined,
-  metodoEntrega: order.metodo_entrega as Order["metodoEntrega"],
-  clienteNombre: order.cliente_nombre,
-  clienteApellido: order.cliente_apellido,
-  clienteTelefono: order.cliente_telefono,
+  metodoEntrega: (order.metodo_entrega as Order["metodoEntrega"]) || undefined,
+  clienteNombre: order.cliente_nombre || undefined,
+  clienteApellido: order.cliente_apellido || undefined,
+  clienteTelefono: order.cliente_telefono || undefined,
   direccionEnvio: order.direccion_envio ? {
     ...(order.direccion_envio as any),
     codigoPostal: (order.direccion_envio as any).cp || (order.direccion_envio as any).codigoPostal,
     ciudad: (order.direccion_envio as any).localidad || (order.direccion_envio as any).ciudad,
   } : undefined,
-  shippingCost: order.shipping_cost,
+  shippingCost: order.shipping_cost || undefined,
   trackingNumber: order.nro_seguimiento || undefined,
   cupon_id: order.cupon_id || undefined,
   descuento: order.descuento || undefined,
@@ -43,7 +43,7 @@ export async function getOrders(): Promise<Order[]> {
       .select(`
         id, items, total, status, mp_payment_id, payer_email, metodo_entrega,
         cliente_nombre, cliente_apellido, cliente_telefono, direccion_envio,
-        shipping_cost, nro_seguimiento, created_at, updated_at
+        shipping_cost, nro_seguimiento, cupon_id, descuento, created_at, updated_at
       `)
       .order("created_at", { ascending: false });
 

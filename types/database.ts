@@ -6,167 +6,329 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      productos: {
+      configuracion: {
         Row: {
-          id: string
-          slug: string
-          nombre: string
-          marca: string
-          descripcion: string
-          notas: Json
-          imagenes: string[]
-          ml_totales_botella: number
-          genero: string
           created_at: string
+          id: string
+          mp_access_token: string | null
+          mp_public_key: string | null
         }
         Insert: {
-          id?: string
-          slug: string
-          nombre: string
-          marca: string
-          descripcion: string
-          notas?: Json
-          imagenes?: string[]
-          ml_totales_botella?: number
-          genero?: string
           created_at?: string
+          id?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
         }
         Update: {
-          id?: string
-          slug?: string
-          nombre?: string
-          marca?: string
-          descripcion?: string
-          notas?: Json
-          imagenes?: string[]
-          ml_totales_botella?: number
-          genero?: string
           created_at?: string
-        }
-      }
-      variantes: {
-        Row: {
-          id: string
-          producto_id: string
-          ml: number
-          precio: number
-          stock: number
-          costo: number | null
-          created_at: string
-        }
-        Insert: {
           id?: string
-          producto_id: string
-          ml: number
-          precio: number
-          stock?: number
-          costo?: number | null
-          created_at?: string
+          mp_access_token?: string | null
+          mp_public_key?: string | null
         }
-        Update: {
-          id?: string
-          producto_id?: string
-          ml?: number
-          precio?: number
-          stock?: number
-          costo?: number | null
-          created_at?: string
-        }
-      }
-      ordenes: {
-        Row: {
-          id: string
-          items: Json
-          total: number
-          status: string
-          mp_payment_id: string | null
-          payer_email: string | null
-          metodo_entrega: string
-          cliente_nombre: string
-          cliente_apellido: string
-          cliente_telefono: string
-          direccion_envio: Json | null
-          shipping_cost: number
-          nro_seguimiento: string | null
-          created_at: string
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          items: Json
-          total: number
-          status?: string
-          mp_payment_id?: string | null
-          payer_email?: string | null
-          metodo_entrega: string
-          cliente_nombre: string
-          cliente_apellido: string
-          cliente_telefono: string
-          direccion_envio?: Json | null
-          shipping_cost?: number
-          nro_seguimiento?: string | null
-          created_at?: string
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          items?: Json
-          total?: number
-          status?: string
-          mp_payment_id?: string | null
-          payer_email?: string | null
-          metodo_entrega?: string
-          cliente_nombre?: string
-          cliente_apellido?: string
-          cliente_telefono?: string
-          direccion_envio?: Json | null
-          shipping_cost?: number
-          nro_seguimiento?: string | null
-          created_at?: string
-          updated_at?: string | null
-        }
+        Relationships: []
       }
       cupones: {
         Row: {
-          id: string
+          activo: boolean | null
           codigo: string
-          valor: number
-          tipo: string
-          activo: boolean
-          expiracion: string | null
-          minimo_compra: number | null
-          usos_maximos: number | null
-          usos_actuales: number
           created_at: string
+          expiracion: string | null
+          id: string
+          minimo_compra: number | null
+          tipo: string
+          usos_actuales: number | null
+          usos_maximos: number | null
+          valor: number
         }
         Insert: {
-          id?: string
+          activo?: boolean | null
           codigo: string
-          valor: number
-          tipo: string
-          activo?: boolean
-          expiracion?: string | null
-          minimo_compra?: number | null
-          usos_maximos?: number | null
-          usos_actuales?: number
           created_at?: string
+          expiracion?: string | null
+          id?: string
+          minimo_compra?: number | null
+          tipo: string
+          usos_actuales?: number | null
+          usos_maximos?: number | null
+          valor: number
         }
         Update: {
-          id?: string
+          activo?: boolean | null
           codigo?: string
-          valor?: number
-          tipo?: string
-          activo?: boolean
-          expiracion?: string | null
-          minimo_compra?: number | null
-          usos_maximos?: number | null
-          usos_actuales?: number
           created_at?: string
+          expiracion?: string | null
+          id?: string
+          minimo_compra?: number | null
+          tipo?: string
+          usos_actuales?: number | null
+          usos_maximos?: number | null
+          valor?: number
         }
+        Relationships: []
       }
+      ordenes: {
+        Row: {
+          cliente_apellido: string | null
+          cliente_nombre: string | null
+          cliente_telefono: string | null
+          created_at: string
+          cupon_id: string | null
+          descuento: number | null
+          direccion_envio: Json | null
+          email_sent: boolean | null
+          id: string
+          items: Json
+          metodo_entrega: string | null
+          mp_payment_id: string | null
+          nro_seguimiento: string | null
+          payer_email: string | null
+          shipping_cost: number | null
+          status: string | null
+          total: number
+          updated_at: string | null
+        }
+        Insert: {
+          cliente_apellido?: string | null
+          cliente_nombre?: string | null
+          cliente_telefono?: string | null
+          created_at?: string
+          cupon_id?: string | null
+          descuento?: number | null
+          direccion_envio?: Json | null
+          email_sent?: boolean | null
+          id?: string
+          items: Json
+          metodo_entrega?: string | null
+          mp_payment_id?: string | null
+          nro_seguimiento?: string | null
+          payer_email?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          total: number
+          updated_at?: string | null
+        }
+        Update: {
+          cliente_apellido?: string | null
+          cliente_nombre?: string | null
+          cliente_telefono?: string | null
+          created_at?: string
+          cupon_id?: string | null
+          descuento?: number | null
+          direccion_envio?: Json | null
+          email_sent?: boolean | null
+          id?: string
+          items?: Json
+          metodo_entrega?: string | null
+          mp_payment_id?: string | null
+          nro_seguimiento?: string | null
+          payer_email?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          total?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordenes_cupon_id_fkey"
+            columns: ["cupon_id"]
+            isOneToOne: false
+            referencedRelation: "cupones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      productos: {
+        Row: {
+          created_at: string | null
+          descripcion: string | null
+          genero: string | null
+          id: string
+          imagenes: string[] | null
+          marca: string
+          ml_totales_botella: number | null
+          nombre: string
+          notas: Json | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descripcion?: string | null
+          genero?: string | null
+          id?: string
+          imagenes?: string[] | null
+          marca: string
+          ml_totales_botella?: number | null
+          nombre: string
+          notas?: Json | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descripcion?: string | null
+          genero?: string | null
+          id?: string
+          imagenes?: string[] | null
+          marca?: string
+          ml_totales_botella?: number | null
+          nombre?: string
+          notas?: Json | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      variantes: {
+        Row: {
+          costo: number | null
+          created_at: string | null
+          id: string
+          ml: number
+          precio: number
+          producto_id: string
+          stock: number | null
+        }
+        Insert: {
+          costo?: number | null
+          created_at?: string | null
+          id?: string
+          ml: number
+          precio: number
+          producto_id: string
+          stock?: number | null
+        }
+        Update: {
+          costo?: number | null
+          created_at?: string | null
+          id?: string
+          ml?: number
+          precio?: number
+          producto_id?: string
+          stock?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variantes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
+
+type PublicSchema = Database[Extract<keyof Database, "public">]
+
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  PublicSchemaNameOrOptions extends
+    | keyof Database
+    | { schema: keyof Database },
+  EnumName extends PublicSchemaNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicSchemaNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicSchemaNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicSchemaNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicSchemaNameOrOptions extends keyof Database["public"]["Enums"]
+    ? Database["public"]["Enums"][PublicSchemaNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicSchemaNameOrOptions extends
+    | keyof Database
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicSchemaNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicSchemaNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicSchemaNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicSchemaNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicSchemaNameOrOptions extends keyof Database["public"]["CompositeTypes"]
+    ? Database["public"]["CompositeTypes"][PublicSchemaNameOrOptions]
+    : never

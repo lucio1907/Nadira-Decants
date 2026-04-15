@@ -12,17 +12,17 @@ const mapProduct = (prod: DBProducto): Producto => ({
   slug: prod.slug,
   nombre: prod.nombre,
   marca: prod.marca,
-  descripcion: prod.descripcion,
+  descripcion: prod.descripcion || "",
   notas: (prod.notas as unknown as NotasOlfativas) || { salida: [], corazon: [], fondo: [] },
   imagenes: prod.imagenes || [],
-  mlTotalesBotella: prod.ml_totales_botella,
-  genero: prod.genero as any,
+  mlTotalesBotella: prod.ml_totales_botella || 0,
+  genero: (prod.genero as any) || 'Unisex',
   variantes: (prod.variantes || [])
     .sort((a, b) => a.ml - b.ml)
     .map((v) => ({
       ml: v.ml,
       precio: Number(v.precio),
-      stock: v.stock,
+      stock: v.stock || 0,
       costo: v.costo ? Number(v.costo) : undefined
     }))
 });
