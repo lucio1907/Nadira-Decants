@@ -2,6 +2,7 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getMercadoPagoToken } from "@/lib/mercadopago-server";
+import { sendOrderConfirmationEmail } from "@/lib/resend";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -92,6 +93,11 @@ export const POST = async (request: NextRequest) => {
       } else {
         console.log("Supabase Update Success. Affected rows:", data?.length);
       }
+    }
+
+    // Trigger email if approved immediately
+    if (paymentResponse.status === "approved") {
+      sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error (process-payment):", err));
     }
 
     return NextResponse.json({

@@ -3,6 +3,7 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { revalidateTag } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getMercadoPagoToken } from "@/lib/mercadopago-server";
+import { sendOrderConfirmationEmail } from "@/lib/resend";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -87,6 +88,9 @@ export const POST = async (request: NextRequest) => {
               }
             }
           }
+
+          // 3. Send confirmation email
+          sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error (webhook):", err));
         }
 
         // Trigger ISR to update product stock on the frontend

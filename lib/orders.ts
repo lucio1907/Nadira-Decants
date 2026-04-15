@@ -3,10 +3,11 @@ import { Order } from "@/types";
 import { Database } from "@/types/database";
 import { getProductsServer } from "./products-server";
 import { startOfDay, subDays, eachDayOfInterval, format } from "date-fns";
+import { sendOrderConfirmationEmail } from "./resend";
 
 type DBOrder = Database["public"]["Tables"]["ordenes"]["Row"];
 
-const mapOrder = (order: DBOrder): Order => ({
+export const mapOrder = (order: DBOrder): Order => ({
   id: order.id,
   items: order.items as any, // Typed in Order interface
   total: order.total,
@@ -24,6 +25,8 @@ const mapOrder = (order: DBOrder): Order => ({
   } : undefined,
   shippingCost: order.shipping_cost,
   trackingNumber: order.nro_seguimiento || undefined,
+  cupon_id: order.cupon_id || undefined,
+  descuento: order.descuento || undefined,
   createdAt: new Date(order.created_at),
   updatedAt: order.updated_at ? new Date(order.updated_at) : undefined,
 });
@@ -128,6 +131,10 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
           .eq("id", currentOrder.cupon_id);
       }
     }
+
+    // 3. Send confirmation email
+    // We do this asynchronously so we don't block the UI/Response
+    sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
   }
 
   return true;

@@ -34,7 +34,7 @@ const CheckoutPage = () => {
   const [paymentMethodMode, setPaymentMethodMode] = useState<"mp" | "transferencia">("transferencia");
   const [isProcessingTransfer, setIsProcessingTransfer] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
-  
+
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     metodo: "retiro",
     nombre: "",
@@ -69,11 +69,11 @@ const CheckoutPage = () => {
     setCouponError(null);
     try {
       const data = await validateCouponAction(couponCode, subtotal);
-      
+
       if (!data.valid) {
         throw new Error(data.message || "Cupón inválido");
       }
-      
+
       setCouponData({
         code: data.coupon!.codigo,
         discount: data.discount!,
@@ -105,7 +105,7 @@ const CheckoutPage = () => {
 
   const baseTotal = Math.max(0, subtotal - discount);
   const transferDiscount = paymentMethodMode === 'transferencia' ? baseTotal * 0.10 : 0;
-  
+
   const total = Math.max(0, baseTotal - transferDiscount + shippingCost);
 
   const handleTransferCheckout = async () => {
@@ -114,10 +114,10 @@ const CheckoutPage = () => {
       const res = await fetch('/api/create-transfer-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          items, 
-          shippingInfo, 
-          shippingCost, 
+        body: JSON.stringify({
+          items,
+          shippingInfo,
+          shippingCost,
           couponCode: couponData?.code,
           orderId: createdOrderId
         })
@@ -220,12 +220,12 @@ Adjunto el comprobante de pago a continuación.`;
     <div style={{ paddingTop: "80px", minHeight: "100vh", background: "var(--black)" }}>
       <div className="container-nd" style={{ padding: "var(--space-2xl) var(--space-md)" }}>
         <div className="flex items-center gap-4" style={{ marginBottom: "var(--space-xl)" }}>
-           <h1 className="text-heading">Checkout</h1>
-           <div className="flex gap-2 items-center">
-              <span style={{ color: step === 'shipping' ? 'var(--accent)' : 'var(--text-disabled)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Entrega</span>
-              <span style={{ color: 'var(--text-disabled)', fontSize: '10px' }}>/</span>
-              <span style={{ color: step === 'payment' ? 'var(--accent)' : 'var(--text-disabled)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Pago</span>
-           </div>
+          <h1 className="text-heading">Checkout</h1>
+          <div className="flex gap-2 items-center">
+            <span style={{ color: step === 'shipping' ? 'var(--accent)' : 'var(--text-disabled)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Entrega</span>
+            <span style={{ color: 'var(--text-disabled)', fontSize: '10px' }}>/</span>
+            <span style={{ color: step === 'payment' ? 'var(--accent)' : 'var(--text-disabled)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Pago</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -240,7 +240,7 @@ Adjunto el comprobante de pago a continuación.`;
                     <button
                       onClick={() => {
                         setShippingMethod("retiro");
-                        setShippingInfo(s => ({...s, metodo: 'retiro'}));
+                        setShippingInfo(s => ({ ...s, metodo: 'retiro' }));
                       }}
                       className={`nd-segment ${shippingMethod === "retiro" ? "nd-segment-active" : ""}`}
                     >
@@ -249,7 +249,7 @@ Adjunto el comprobante de pago a continuación.`;
                     <button
                       onClick={() => {
                         setShippingMethod("envio");
-                        setShippingInfo(s => ({...s, metodo: 'envio'}));
+                        setShippingInfo(s => ({ ...s, metodo: 'envio' }));
                       }}
                       className={`nd-segment ${shippingMethod === "envio" ? "nd-segment-active" : ""}`}
                     >
@@ -421,9 +421,9 @@ Adjunto el comprobante de pago a continuación.`;
 
                   {shippingMethod === "retiro" && (
                     <div style={{ marginTop: "var(--space-lg)", padding: 'var(--space-md)', background: 'var(--surface-raised)', border: '1px solid var(--border)' }}>
-                       <p className="text-nd-label" style={{ marginBottom: '8px', color: 'var(--accent)' }}>Punto de retiro</p>
-                       <p style={{ fontSize: '13px', color: 'var(--text-primary)' }}>San Martin 1485, Baradero, Pcia de Buenos Aires.</p>
-                       <p style={{ fontSize: '11px', color: 'var(--text-disabled)', marginTop: '4px' }}>CP 2942. Lunes a Viernes 10hs a 18hs.</p>
+                      <p className="text-nd-label" style={{ marginBottom: '8px', color: 'var(--accent)' }}>Punto de retiro</p>
+                      <p style={{ fontSize: '13px', color: 'var(--text-primary)' }}>San Martin 1485, Baradero, Pcia de Buenos Aires.</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-disabled)', marginTop: '4px' }}>CP 2942. Lunes a Viernes 10hs a 18hs.</p>
                     </div>
                   )}
 
@@ -439,12 +439,12 @@ Adjunto el comprobante de pago a continuación.`;
               </div>
             ) : (
               <div className="nd-animate-fade-in">
-                <button 
+                <button
                   onClick={() => setStep("shipping")}
-                  style={{ 
-                    marginBottom: 'var(--space-md)', 
-                    color: 'var(--text-secondary)', 
-                    fontSize: '11px', 
+                  style={{
+                    marginBottom: 'var(--space-md)',
+                    color: 'var(--text-secondary)',
+                    fontSize: '11px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
                     display: 'flex',
@@ -483,11 +483,11 @@ Adjunto el comprobante de pago a continuación.`;
                   </div>
 
                   {paymentMethodMode === "mp" ? (
-                    <PaymentBrick 
-                      cart={items} 
-                      total={total} 
-                      shippingInfo={shippingInfo} 
-                      shippingCost={shippingCost} 
+                    <PaymentBrick
+                      cart={items}
+                      total={total}
+                      shippingInfo={shippingInfo}
+                      shippingCost={shippingCost}
                       couponData={couponData}
                       existingOrderId={createdOrderId}
                       onOrderCreated={setCreatedOrderId}
@@ -505,8 +505,9 @@ Adjunto el comprobante de pago a continuación.`;
 
                         <div className="my-6 p-4 bg-black/40 border border-[var(--border-visible)] rounded-lg">
                           <p className="text-[10px] text-[var(--text-disabled)] tracking-wider uppercase mb-1">Datos Bancarios</p>
-                          <p className="text-sm text-[var(--text-primary)]">Alias: <strong>NADIRA.DECANTS.MP</strong></p>
-                          <p className="text-sm text-[var(--text-primary)]">Titular: Nadira Decants S.A.</p>
+                          <p className="text-sm text-[var(--text-primary)]">Alias: <strong>Nadira.decants</strong></p>
+                          <p className="text-sm text-[var(--text-primary)]">CBU: <strong>0000003100057973739017</strong></p>
+                          <p className="text-sm text-[var(--text-primary)]">Titular: <strong>Daniela Fernanda Arrieta</strong></p>
                         </div>
                       </div>
 
@@ -578,7 +579,7 @@ Adjunto el comprobante de pago a continuación.`;
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       />
-                      <button 
+                      <button
                         onClick={handleApplyCoupon}
                         disabled={validadingCoupon || !couponCode}
                         className="nd-btn-primary"
@@ -595,7 +596,7 @@ Adjunto el comprobante de pago a continuación.`;
                       <span className="text-[9px] uppercase tracking-widest text-green-500 font-bold">Cupón Aplicado</span>
                       <span className="text-xs text-[var(--text-primary)]">{couponData.code}</span>
                     </div>
-                    <button 
+                    <button
                       onClick={removeCoupon}
                       className="text-[var(--text-disabled)] hover:text-red-500 transition-colors"
                     >
