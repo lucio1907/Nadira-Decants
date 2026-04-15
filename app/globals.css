@@ -796,7 +796,6 @@ input[type="reset"] {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
   animation: nd-shimmer 1.5s infinite;
 }
-<<<<<<< HEAD
 
 /* Hide scrollbar utility */
 .scrollbar-hide {
@@ -807,6 +806,3 @@ input[type="reset"] {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
-
-=======
->>>>>>> 3419076 (refactor: modularize product form, implement server actions, and improve order data handling)

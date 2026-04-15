@@ -196,11 +196,7 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
   const onSortOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> 3419076 (refactor: modularize product form, implement server actions, and improve order data handling)
     setFormData(prev => {
       const newImages = [...prev.imagenes];
       const item = newImages.splice(draggedIndex, 1)[0];
