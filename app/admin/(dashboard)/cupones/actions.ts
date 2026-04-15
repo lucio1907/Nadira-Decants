@@ -12,7 +12,7 @@ export async function upsertCouponAction(coupon: Partial<Coupon>) {
     const result = await saveCoupon(coupon);
     
     revalidatePath("/admin/cupones", "page");
-    revalidateTag("cupones", "max");
+    revalidateTag("cupones", { expire: 0 });
     
     return { success: true, data: result };
   } catch (error) {
@@ -32,7 +32,7 @@ export async function deleteCouponAction(id: string) {
     await deleteCoupon(id);
     
     revalidatePath("/admin/cupones", "page");
-    revalidateTag("cupones", "max");
+    revalidateTag("cupones", { expire: 0 });
     
     return { success: true };
   } catch (error) {

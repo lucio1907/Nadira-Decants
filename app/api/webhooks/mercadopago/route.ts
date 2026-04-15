@@ -94,7 +94,8 @@ export const POST = async (request: NextRequest) => {
         }
 
         // Trigger ISR to update product stock on the frontend
-        revalidateTag("productos", "max");
+        revalidateTag("productos", { expire: 0 });
+        revalidateTag("ordenes", { expire: 0 });
       }
     }
 

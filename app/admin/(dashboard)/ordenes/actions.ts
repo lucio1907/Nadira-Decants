@@ -18,8 +18,8 @@ export async function updateOrderAction(
     // Revalidate relevant paths and tags
     revalidatePath("/admin/ordenes", "page");
     revalidatePath("/admin/estadisticas", "page");
-    revalidateTag("ordenes", "max");
-    revalidateTag("productos", "max");
+    revalidateTag("ordenes", { expire: 0 });
+    revalidateTag("productos", { expire: 0 });
     
     return { success: true };
   } catch (error) {

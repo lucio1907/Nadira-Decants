@@ -104,7 +104,7 @@ export const upsertProductAction = async (
     if (insertVariantesError) throw insertVariantesError;
 
     // 4. Revalidate
-    revalidateTag("productos", "max");
+    revalidateTag("productos", { expire: 0 });
     revalidatePath("/", "layout");
     revalidatePath("/admin/productos", "page");
     if (productData.slug) {
@@ -125,10 +125,10 @@ export const deleteProductAction = async (id: string): Promise<ActionResponse> =
   try {
     const supabase = await createAdminClient();
     
-    // Get images for cleanup
+    // Get images and slug for cleanup/revalidation
     const { data: product } = await supabase
       .from("productos")
-      .select("imagenes")
+      .select("imagenes, slug")
       .eq("id", id)
       .single();
 
@@ -144,9 +144,12 @@ export const deleteProductAction = async (id: string): Promise<ActionResponse> =
       
     if (error) throw error;
 
-    revalidateTag("productos", "max");
+    revalidateTag("productos", { expire: 0 });
     revalidatePath("/", "layout");
     revalidatePath("/admin/productos", "page");
+    if (product?.slug) {
+      revalidatePath(`/producto/${product.slug}`, "page");
+    }
 
     return { success: true };
   } catch (error: any) {
