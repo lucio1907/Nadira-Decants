@@ -76,8 +76,9 @@ export const Navbar = () => {
           <Link
             href="/"
             onClick={handleHomeClick}
-            className={`transition-all duration-500 flex items-center ${mobileOpen ? "opacity-0 pointer-events-none" : "opacity-100 hover:opacity-80"
-              }`}
+            className={`transition-all duration-500 flex items-center ${
+              mobileOpen ? "opacity-0 pointer-events-none" : "opacity-100 hover:opacity-80"
+            }`}
           >
             <Image
               src="/images/logonadira.png"

@@ -492,8 +492,6 @@ Adjunto el comprobante de pago a continuación.`;
                       total={total}
                       shippingInfo={shippingInfo}
                       shippingCost={shippingCost}
-
-
                       couponData={couponData}
                       existingOrderId={createdOrderId}
                       onOrderCreated={setCreatedOrderId}
@@ -514,8 +512,6 @@ Adjunto el comprobante de pago a continuación.`;
                           <p className="text-sm text-[var(--text-primary)]">Alias: <strong>Nadira.decants</strong></p>
                           <p className="text-sm text-[var(--text-primary)]">CBU: <strong>0000003100057973739017</strong></p>
                           <p className="text-sm text-[var(--text-primary)]">Titular: <strong>Daniela Fernanda Arrieta</strong></p>
-
-
                         </div>
                       </div>
 
@@ -530,63 +526,64 @@ Adjunto el comprobante de pago a continuación.`;
                   )}
                 </div>
 
-              </div>
+
+              </div >
             )}
+          </div >
+
+  {/* Order Summary */ }
+  < div className = "lg:col-span-1 order-1 lg:order-2" >
+    <div
+      className="nd-card sticky"
+      style={{
+        top: "72px",
+        padding: "var(--space-lg)",
+      }}
+    >
+      <h2
+        className="text-nd-label"
+        style={{
+          color: "var(--text-secondary)",
+          marginBottom: "var(--space-lg)",
+        }}
+      >
+        Tu pedido
+      </h2>
+
+      <div style={{ marginBottom: "var(--space-lg)", maxHeight: '300px', overflowY: 'auto' }}>
+        {items.map((item) => (
+          <div
+            key={`${item.id}-${item.variante.ml}`}
+            className="flex items-center gap-3"
+            style={{ padding: "var(--space-sm) 0" }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {item.nombre}
+              </p>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-disabled)" }}>
+                {item.variante.ml}ml × {item.quantity}
+              </p>
+            </div>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--text-primary)" }}>
+              ${(item.variante.precio * item.quantity).toLocaleString("es-AR")}
+            </p>
           </div>
+        ))}
+      </div>
 
-          {/* Order Summary */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
-            <div
-              className="nd-card sticky"
-              style={{
-                top: "72px",
-                padding: "var(--space-lg)",
-              }}
-            >
-              <h2
-                className="text-nd-label"
-                style={{
-                  color: "var(--text-secondary)",
-                  marginBottom: "var(--space-lg)",
-                }}
-              >
-                Tu pedido
-              </h2>
-
-              <div style={{ marginBottom: "var(--space-lg)", maxHeight: '300px', overflowY: 'auto' }}>
-                {items.map((item) => (
-                  <div
-                    key={`${item.id}-${item.variante.ml}`}
-                    className="flex items-center gap-3"
-                    style={{ padding: "var(--space-sm) 0" }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {item.nombre}
-                      </p>
-                      <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-disabled)" }}>
-                        {item.variante.ml}ml × {item.quantity}
-                      </p>
-                    </div>
-                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--text-primary)" }}>
-                      ${(item.variante.precio * item.quantity).toLocaleString("es-AR")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginBottom: "var(--space-md)" }}>
-                {!couponData ? (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="CÓDIGO DE CUPÓN"
-                        className="nd-input flex-1 uppercase"
-                        style={{ fontSize: '11px', padding: '8px 12px' }}
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      />
+      <div style={{ marginBottom: "var(--space-md)" }}>
+        {!couponData ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="CÓDIGO DE CUPÓN"
+                className="nd-input flex-1 uppercase"
+                style={{ fontSize: '11px', padding: '8px 12px' }}
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              />
                       <button
                         onClick={handleApplyCoupon}
                         disabled={validadingCoupon || !couponCode}
@@ -613,6 +610,7 @@ Adjunto el comprobante de pago a continuación.`;
                   </div>
                 )}
               </div>
+
 
               <div className="nd-divider" style={{ marginBottom: "var(--space-md)" }} />
 
@@ -686,6 +684,7 @@ Adjunto el comprobante de pago a continuación.`;
         </div>
       </div>
     </div>
+
   );
 };
 

@@ -74,7 +74,7 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
         currentOrderIdRef.current = data.orderId;
         setPreferenceId(data.preferenceId);
         setOrderId(data.orderId);
-        
+
         if (onOrderCreated && data.orderId) {
           onOrderCreated(data.orderId);
         }
@@ -97,7 +97,7 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
     // No genera formData porque se resuelve mediante redirección interna del Brick
     if (selectedPaymentMethod === 'wallet_purchase') {
       console.log("Wallet purchase selected, letting the Brick handle the redirect...");
-      return; 
+      return;
     }
 
     setProcessing(true);
