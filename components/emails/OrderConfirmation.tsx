@@ -129,7 +129,7 @@ export const OrderConfirmationEmail = ({ order }: { order: Order }) => {
                       <tr>
                         <td style={{ paddingBottom: '16px', color: colors.textSecondary, fontSize: '15px' }}>Envío:</td>
                         <td style={{ paddingBottom: '16px', color: order.shippingCost === 0 ? colors.success : colors.textPrimary, fontWeight: order.shippingCost === 0 ? '600' : '400', fontSize: '15px', textAlign: 'right' }}>
-                          {order.shippingCost === 0 ? 'Gratis' : `$${order.shippingCost?.toLocaleString('es-AR')}`}
+                          {order.shippingCost === 0 ? 'Gratis' : order.shippingCost ? `$${order.shippingCost.toLocaleString('es-AR')}` : 'Consultar'}
                         </td>
                       </tr>
                       {order.descuento ? (

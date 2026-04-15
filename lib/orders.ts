@@ -23,10 +23,11 @@ export const mapOrder = (order: DBOrder): Order => ({
     codigoPostal: (order.direccion_envio as any).cp || (order.direccion_envio as any).codigoPostal,
     ciudad: (order.direccion_envio as any).localidad || (order.direccion_envio as any).ciudad,
   } : undefined,
-  shippingCost: order.shipping_cost || undefined,
+  shippingCost: order.shipping_cost ?? undefined,
   trackingNumber: order.nro_seguimiento || undefined,
-   cupon_id: order.cupon_id || undefined,
-  descuento: order.descuento || undefined,
+  cupon_id: order.cupon_id || undefined,
+  descuento: order.descuento ?? undefined,
+
   createdAt: new Date(order.created_at),
   updatedAt: order.updated_at ? new Date(order.updated_at) : undefined,
 });
