@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { CartStatusHandler } from "@/components/checkout/CartStatusHandler";
+import { createAdminClient } from "@/lib/supabase/server";
+import { getMercadoPagoToken } from "@/lib/mercadopago-server";
+import { MercadoPagoConfig, Payment } from "mercadopago";
+import { reduceStockForOrder } from "@/lib/orders";
+import { sendOrderConfirmationEmail } from "@/lib/resend";
+import { revalidateTag } from "next/cache";
 
 const StatusPage = async ({
   searchParams,
@@ -9,6 +15,55 @@ const StatusPage = async ({
   const params = await searchParams;
   const status = params.status;
   const paymentId = params.payment_id;
+
+  // Fallback sync process: If user is redirected here and the webhook hasn't arrived,
+  // we manually fetch the payment and update the database. Essential for local testing.
+  if (paymentId && status === "approved") {
+    try {
+      const accessToken = await getMercadoPagoToken();
+      if (accessToken) {
+        const mpClient = new MercadoPagoConfig({ accessToken });
+        const paymentApi = new Payment(mpClient);
+        const paymentData = await paymentApi.get({ id: paymentId });
+        
+        if (paymentData.status === "approved") {
+          const orderId = paymentData.external_reference;
+          
+          if (orderId) {
+            const supabase = await createAdminClient();
+            
+            const { data: order } = await supabase
+              .from("ordenes")
+              .select("status")
+              .eq("id", orderId)
+              .single();
+              
+            if (order && order.status !== "approved") {
+              console.log(`[Status Sync] Fallback aprobando orden ${orderId}`);
+              const { error: updateError } = await supabase
+                .from("ordenes")
+                .update({
+                  status: paymentData.status,
+                  mp_payment_id: String(paymentData.id),
+                  payer_email: paymentData.payer?.email,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", orderId);
+
+              if (!updateError) {
+                await reduceStockForOrder(supabase, orderId);
+                sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
+                revalidateTag("productos", { expire: 0 } as any);
+                revalidateTag("ordenes", { expire: 0 } as any);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Status page sync error:", error);
+    }
+  }
 
   const statusConfig: Record<
     string,

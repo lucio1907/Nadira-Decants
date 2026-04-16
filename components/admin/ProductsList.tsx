@@ -298,8 +298,8 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
                   <div className="space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-[var(--text-disabled)] font-semibold">Variantes y Stock</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {p.variantes.map(v => (
-                        <div key={v.ml} className={`text-[11px] px-2 py-1 bg-[var(--surface-raised)] border border-[var(--border)] rounded flex items-center gap-1.5 transition-colors ${v.stock === 0 ? "border-[#D71921]/20 opacity-60" : v.stock < 5 ? "border-[#d3b000]/30" : ""}`}>
+                      {p.variantes.map((v, idx) => (
+                        <div key={`variant-grid-${v.ml}-${idx}`} className={`text-[11px] px-2 py-1 bg-[var(--surface-raised)] border border-[var(--border)] rounded flex items-center gap-1.5 transition-colors ${v.stock === 0 ? "border-[#D71921]/20 opacity-60" : v.stock < 5 ? "border-[#d3b000]/30" : ""}`}>
                           <span className="font-bold">{v.ml}ml</span>
                           <span className={`${v.stock === 0 ? "text-[#D71921]" : v.stock < 5 ? "text-[#d3b000]" : "text-[var(--success)]"}`}>
                             ({v.stock})
@@ -378,8 +378,8 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
-                          {p.variantes.map(v => (
-                            <div key={v.ml} className="flex items-center gap-3 text-xs">
+                          {p.variantes.map((v, idx) => (
+                            <div key={`variant-table-${v.ml}-${idx}`} className="flex items-center gap-3 text-xs">
                               <span className="w-10 font-bold">{v.ml}ml</span>
                               <span className={`w-16 ${v.stock === 0 ? "text-[#D71921] font-bold" : v.stock < 5 ? "text-[#d3b000] font-bold" : "text-[var(--text-secondary)]"}`}>
                                 Stock: {v.stock}

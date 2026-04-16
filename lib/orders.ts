@@ -27,6 +27,10 @@ export const mapOrder = (order: DBOrder): Order => ({
   trackingNumber: order.nro_seguimiento || undefined,
   cupon_id: order.cupon_id || undefined,
   descuento: order.descuento ?? undefined,
+  enviaShipmentId: order.envia_shipment_id || undefined,
+  labelUrl: order.label_url || undefined,
+  enviaCarrier: order.envia_carrier || undefined,
+  enviaService: order.envia_service || undefined,
 
   createdAt: new Date(order.created_at),
   updatedAt: order.updated_at ? new Date(order.updated_at) : undefined,
@@ -44,7 +48,8 @@ export async function getOrders(): Promise<Order[]> {
       .select(`
         id, items, total, status, mp_payment_id, payer_email, metodo_entrega,
         cliente_nombre, cliente_apellido, cliente_telefono, direccion_envio,
-        shipping_cost, nro_seguimiento, cupon_id, descuento, created_at, updated_at
+        shipping_cost, nro_seguimiento, cupon_id, descuento, created_at, updated_at,
+        envia_shipment_id, label_url, envia_carrier, envia_service, email_sent
       `)
       .order("created_at", { ascending: false });
 
@@ -53,7 +58,7 @@ export async function getOrders(): Promise<Order[]> {
       return [];
     }
 
-    return (data as DBOrder[]).map(mapOrder);
+    return data.map(mapOrder);
   } catch (error) {
     console.error("Error in getOrders:", error);
     return [];
@@ -93,13 +98,47 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     throw error;
   }
 
-  // Handle stock and coupon logic when approving an order manually
-  if (currentOrder && status === "approved" && 
-      !["approved", "shipped", "delivered"].includes(currentOrder.status)) {
-    
+  // Handle stock and coupon logic when approving or shipping an order
+  if (currentOrder && (status === "approved" || status === "shipped" || status === "delivered")) {
+    // We use our shared helper for stock deduction (it's idempotent)
+    await reduceStockForOrder(supabase, orderId);
+
+    // If it's becoming approved and wasn't before, send confirmation email
+    if (status === "approved" && currentOrder.status !== "approved") {
+        sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Deducts stock for each item in the order and increments coupon usage.
+ * This function is idempotent because it checks the stock_descontado flag.
+ */
+export async function reduceStockForOrder(supabase: any, orderId: string) {
+  try {
+    // Fetch latest order data including stock_descontado flag
+    // We cast to any because the type might not have been regenerated yet
+    const { data: order, error: fetchError } = await supabase
+      .from("ordenes")
+      .select("items, cupon_id, stock_descontado")
+      .eq("id", orderId)
+      .single();
+
+    if (fetchError || !order) {
+      console.error("Error fetching order for stock reduction:", fetchError);
+      return false;
+    }
+
+    // If already discounted, skip
+    if ((order as any).stock_descontado) {
+      return true;
+    }
+
     // 1. Update stock for each variant
-    if (currentOrder.items) {
-      for (const item of (currentOrder.items as any[])) {
+    if (order.items) {
+      for (const item of (order.items as any[])) {
          const { data: varianteData } = await supabase
            .from("variantes")
            .select("id, stock")
@@ -118,29 +157,37 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     }
 
     // 2. Increment coupon usage if exists
-    if (currentOrder.cupon_id) {
+    if (order.cupon_id) {
       const { data: currentCoupon } = await supabase
         .from("cupones")
         .select("usos_actuales")
-        .eq("id", currentOrder.cupon_id)
+        .eq("id", order.cupon_id)
         .single();
       
       if (currentCoupon) {
         await supabase
           .from("cupones")
           .update({ usos_actuales: (currentCoupon.usos_actuales || 0) + 1 })
-          .eq("id", currentOrder.cupon_id);
+          .eq("id", order.cupon_id);
       }
     }
 
-    // 3. Send confirmation email
-    // We do this asynchronously so we don't block the UI/Response
-    sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
+    // 3. Mark as discounted
+    const { error: updateError } = await supabase
+      .from("ordenes")
+      .update({ stock_descontado: true })
+      .eq("id", orderId);
 
+    if (updateError) {
+      console.error("Error marking order as stock discounted:", updateError);
+      return false;
+    }
 
+    return true;
+  } catch (error) {
+    console.error("Unexpected error in reduceStockForOrder:", error);
+    return false;
   }
-
-  return true;
 }
 
 /**

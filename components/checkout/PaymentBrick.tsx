@@ -13,9 +13,10 @@ interface Props {
   couponData?: { code: string; discount: number; couponId: string } | null;
   existingOrderId?: string | null;
   onOrderCreated?: (orderId: string) => void;
+  selectedQuote?: any | null;
 }
 
-export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponData, existingOrderId, onOrderCreated }: Props) => {
+export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponData, existingOrderId, onOrderCreated, selectedQuote }: Props) => {
 
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -42,7 +43,13 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
     initMercadoPago(publicKey, { locale: "es-AR" });
 
     const fetchPreference = async () => {
-      const currentPayload = JSON.stringify({ cart, shippingInfo, shippingCost, couponCode: couponData?.code });
+      const currentPayload = JSON.stringify({ 
+        cart, 
+        shippingInfo, 
+        shippingCost, 
+        couponCode: couponData?.code,
+        selectedQuote 
+      });
       // Evitar re-fetch si los datos no cambiaron o si ya hay una petición en vuelo
       if (currentPayload === lastPayloadRef.current || isFetchingRef.current) return;
 
@@ -59,7 +66,8 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
             shippingInfo,
             shippingCost,
             orderId: existingOrderId || currentOrderIdRef.current,
-            couponCode: couponData?.code
+            couponCode: couponData?.code,
+            selectedQuote
           }),
         });
 
@@ -88,7 +96,7 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
     };
 
     fetchPreference();
-  }, [cart, shippingInfo, shippingCost, couponData]); // Solo re-ejecutar si cambian los inputs del usuario
+  }, [cart, shippingInfo, shippingCost, couponData, selectedQuote]); // Solo re-ejecutar si cambian los inputs del usuario
 
   const handleSubmit = async (brickResponse: any) => {
     const { formData, selectedPaymentMethod } = brickResponse;

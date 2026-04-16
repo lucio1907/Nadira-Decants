@@ -155,9 +155,9 @@ export const VariantSelector = ({
         className="flex flex-wrap gap-3"
         style={{ marginBottom: "var(--space-lg)" }}
       >
-        {variantes.map((v) => (
+        {variantes.map((v, idx) => (
           <button
-            key={v.ml}
+            key={`${v.ml}-${idx}`}
             onClick={() => setSelected(v)}
             disabled={v.stock === 0}
             className={`relative flex items-center justify-center transition-all duration-400 py-3.5 px-6 border ${

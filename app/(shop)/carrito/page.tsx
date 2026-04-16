@@ -122,7 +122,7 @@ const CarritoPage = () => {
           <div className="lg:col-span-2">
             {items.map((item, i) => (
               <div
-                key={`${item.id}-${item.variante.ml}`}
+                key={`cart-item-${item.id}-${item.variante.ml}-${i}`}
                 className="nd-row nd-animate-fade-in"
                 style={{
                   alignItems: "center",
@@ -346,9 +346,9 @@ const CarritoPage = () => {
               </h2>
 
               <div style={{ marginBottom: "var(--space-lg)" }}>
-                {items.map((item) => (
+                {items.map((item, i) => (
                   <div
-                    key={`summary-${item.id}-${item.variante.ml}`}
+                    key={`summary-${item.id}-${item.variante.ml}-${i}`}
                     className="flex justify-between gap-2"
                     style={{
                       fontFamily: "var(--font-mono)",

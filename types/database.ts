@@ -88,6 +88,10 @@ export type Database = {
           shipping_cost: number | null
           status: string | null
           total: number
+          label_url: string | null
+          envia_shipment_id: string | null
+          envia_carrier: string | null
+          envia_service: string | null
           updated_at: string | null
         }
         Insert: {
@@ -108,6 +112,10 @@ export type Database = {
           shipping_cost?: number | null
           status?: string | null
           total: number
+          label_url?: string | null
+          envia_shipment_id?: string | null
+          envia_carrier?: string | null
+          envia_service?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -128,6 +136,10 @@ export type Database = {
           shipping_cost?: number | null
           status?: string | null
           total?: number
+          label_url?: string | null
+          envia_shipment_id?: string | null
+          envia_carrier?: string | null
+          envia_service?: string | null
           updated_at?: string | null
         }
         Relationships: [

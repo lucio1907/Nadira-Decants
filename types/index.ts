@@ -3,6 +3,10 @@ export interface Variante {
   precio: number;
   stock: number;
   costo?: number;
+  peso_g?: number;
+  largo_cm?: number;
+  ancho_cm?: number;
+  alto_cm?: number;
 }
 
 export interface NotasOlfativas {
@@ -48,6 +52,8 @@ export interface ShippingInfo {
   ciudad?: string;
   codigoPostal?: string;
   notas?: string;
+  locationId?: string;
+  sucursalNombre?: string;
 }
 
 export interface Coupon {
@@ -81,5 +87,9 @@ export interface Order {
   createdAt: Date;
   updatedAt?: Date;
   trackingNumber?: string;
+  enviaShipmentId?: string;
+  labelUrl?: string;
+  enviaCarrier?: string;
+  enviaService?: string;
 }
 

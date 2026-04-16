@@ -12,13 +12,15 @@ export const POST = async (request: NextRequest) => {
       shippingInfo, 
       shippingCost,
       orderId: existingOrderId,
-      couponCode
+      couponCode,
+      selectedQuote
     }: { 
       items: CartItem[]; 
       shippingInfo: ShippingInfo; 
       shippingCost: number;
       orderId?: string;
       couponCode?: string;
+      selectedQuote?: any;
     } = await request.json();
 
 
@@ -81,11 +83,14 @@ export const POST = async (request: NextRequest) => {
           localidad: shippingInfo.ciudad,
           provincia: shippingInfo.provincia,
           cp: shippingInfo.codigoPostal,
-          notas: shippingInfo.notas
+          notas: shippingInfo.notas,
+          locationId: (shippingInfo as any).locationId
         } : null,
         shipping_cost: shippingCost || 0,
         cupon_id: cuponId,
-        descuento: discount
+        descuento: discount,
+        envia_carrier: selectedQuote?.carrier || 'correo-argentino',
+        envia_service: selectedQuote?.service || null
       };
       
       // ... resto de la lógica de guardado de orden ...

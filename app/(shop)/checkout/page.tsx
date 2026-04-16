@@ -6,8 +6,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ShippingInfo } from "@/types";
 import { calculateShipping } from "@/lib/shipping";
-import { X } from "lucide-react";
+import { X, Clock, Truck, ChevronRight, AlertCircle, Info, MapPin, Search, CheckCircle2 } from "lucide-react";
 import { validateCouponAction } from "@/app/admin/(dashboard)/cupones/actions";
+import { Map, MapMarker } from "@/components/ui/Map";
 
 const PaymentBrick = dynamic(
   () =>
@@ -57,6 +58,16 @@ const CheckoutPage = () => {
   const [validadingCoupon, setValidatingCoupon] = useState(false);
   const [couponData, setCouponData] = useState<{ code: string; discount: number; couponId: string } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
+  
+  // Envia.com states
+  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
+  const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
+  const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
+  const [enviaError, setEnviaError] = useState<string | null>(null);
+
+  // Branches states
+  const [availableBranches, setAvailableBranches] = useState<any[]>([]);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
 
 
   useEffect(() => {
@@ -95,14 +106,90 @@ const CheckoutPage = () => {
 
   const discount = couponData?.discount || 0;
 
-  const shippingCost = useMemo(() => {
-    if (shippingMethod === "retiro") return 0;
-    return calculateShipping(
-      shippingInfo.codigoPostal || "",
-      shippingInfo.provincia || "",
-      subtotal - discount // Aplicar descuento al subtotal para el cálculo de envío si afecta el umbral
-    );
-  }, [shippingMethod, shippingInfo.codigoPostal, shippingInfo.provincia, subtotal, discount]);
+  // New async shipping calculation
+  useEffect(() => {
+    const fetchQuotes = async () => {
+      if (shippingMethod === "retiro" || !shippingInfo.codigoPostal || !shippingInfo.provincia) {
+        setShippingOptions([]);
+        setSelectedQuote(null);
+        return;
+      }
+
+      setIsLoadingQuotes(true);
+      setEnviaError(null);
+      try {
+        const res = await fetch("/api/shipping/quotes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            zipCode: shippingInfo.codigoPostal,
+            province: shippingInfo.provincia,
+            items
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error al obtener cotizaciones");
+
+        setShippingOptions(data.quotes || []);
+        if (data.quotes?.length > 0) {
+          setSelectedQuote(data.quotes[0]); // Auto-select cheapest/first one
+        } else {
+          setEnviaError("No hay opciones de envío disponibles para tu código postal.");
+        }
+      } catch (err: any) {
+        setEnviaError(err.message || "Los envíos no están disponibles actualmente");
+        setShippingOptions([]);
+        setSelectedQuote(null);
+      } finally {
+        setIsLoadingQuotes(false);
+      }
+    };
+
+    fetchQuotes();
+  }, [shippingMethod, shippingInfo.codigoPostal, shippingInfo.provincia, items]);
+
+  // Fetch branches when sucursal is selected
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") || 
+                        selectedQuote?.service.toLowerCase().includes("sucursal");
+
+      if (!isSucursal || !shippingInfo.codigoPostal) {
+        setAvailableBranches([]);
+        return;
+      }
+
+      setIsLoadingBranches(true);
+      try {
+        const res = await fetch(`/api/shipping/branches?zipCode=${shippingInfo.codigoPostal}&carrier=${selectedQuote.carrier}`);
+        const data = await res.json();
+        
+        if (data.branches && data.branches.length > 0) {
+          setAvailableBranches(data.branches);
+          
+          // Verificar si el ID de sucursal actual sigue siendo válido en la nueva lista
+          const stillExists = data.branches.some((b: any) => b.id === shippingInfo.locationId);
+          
+          if (!stillExists) {
+            setShippingInfo(prev => ({ 
+              ...prev, 
+              locationId: data.branches[0].id,
+              sucursalNombre: data.branches[0].name 
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching branches:", err);
+      } finally {
+        setIsLoadingBranches(false);
+      }
+    };
+
+    fetchBranches();
+  }, [selectedQuote, shippingInfo.codigoPostal]);
+
+  const shippingCost = selectedQuote ? selectedQuote.totalPrice : 0;
 
   const baseTotal = Math.max(0, subtotal - discount);
   const transferDiscount = paymentMethodMode === 'transferencia' ? baseTotal * 0.10 : 0;
@@ -123,8 +210,9 @@ const CheckoutPage = () => {
           shippingCost,
 
 
-          couponCode: couponData?.code,
-          orderId: createdOrderId
+           couponCode: couponData?.code,
+          orderId: createdOrderId,
+          selectedQuote // Pass selected Envia quote
         })
       });
 
@@ -153,28 +241,29 @@ Adjunto el comprobante de pago a continuación.`;
     }
   };
 
-
   const isFormValid = useMemo(() => {
-    if (shippingMethod === "retiro") {
-      return (
-        shippingInfo.nombre &&
-        shippingInfo.apellido &&
-        shippingInfo.telefono &&
-        shippingInfo.email
-      );
-    }
-    return (
+    const basicInfo = 
       shippingInfo.nombre &&
       shippingInfo.apellido &&
       shippingInfo.telefono &&
-      shippingInfo.email &&
+      shippingInfo.email;
+
+    if (shippingMethod === "retiro") return basicInfo;
+
+    const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") || 
+                      selectedQuote?.service.toLowerCase().includes("sucursal");
+
+    return (
+      basicInfo &&
       shippingInfo.calle &&
       shippingInfo.numero &&
       shippingInfo.provincia &&
       shippingInfo.ciudad &&
-      shippingInfo.codigoPostal
+      shippingInfo.codigoPostal &&
+      selectedQuote &&
+      (!isSucursal || (shippingInfo.locationId && shippingInfo.sucursalNombre))
     );
-  }, [shippingMethod, shippingInfo]);
+  }, [shippingMethod, shippingInfo, selectedQuote]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -410,7 +499,7 @@ Adjunto el comprobante de pago a continuación.`;
                           </select>
                         </div>
                         <div className="md:col-span-2 flex flex-col">
-                          <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Notas adicionales (Opcional)</label>
+                          <label className="text-nd-label !text-[9px] !mb-[-8px] !mt-3 opacity-60">Notas adicionales (Opcional)</label>
                           <input
                             type="text"
                             name="notas"
@@ -424,21 +513,265 @@ Adjunto el comprobante de pago a continuación.`;
                     )}
                   </div>
 
+                  {shippingMethod === "envio" && (
+                    <div className="mt-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Truck size={16} className="text-[var(--accent)]" />
+                        <h3 className="text-nd-label uppercase tracking-widest text-[11px] font-bold">
+                          Opciones de Envío
+                        </h3>
+                      </div>
+                      
+                      {isLoadingQuotes ? (
+                        <div className="space-y-3">
+                          {[1, 2].map((i) => (
+                            <div key={i} className="h-[90px] w-full rounded-2xl nd-skeleton border border-[var(--border)] flex items-center px-5 justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-white/5" />
+                                <div className="space-y-2">
+                                  <div className="h-3 w-32 bg-white/10 rounded" />
+                                  <div className="h-2 w-20 bg-white/5 rounded" />
+                                </div>
+                              </div>
+                              <div className="h-4 w-16 bg-white/10 rounded" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : enviaError ? (
+                        <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-start gap-3 transition-all">
+                          <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-red-500 text-xs font-medium">Error al cotizar</p>
+                            <p className="text-red-500/60 text-[10px] mt-1 line-clamp-2">{enviaError}</p>
+                          </div>
+                        </div>
+                      ) : shippingOptions.length > 0 ? (
+                        <div className="space-y-3">
+                          {shippingOptions.map((quote, idx) => {
+                            const isSelected = !!selectedQuote && 
+                                             selectedQuote.carrier === quote.carrier && 
+                                             selectedQuote.service === quote.service &&
+                                             selectedQuote.totalPrice === quote.totalPrice;
+                            
+                            const isSucursal = quote.service.toLowerCase().includes("sucursal") || quote.service.toLowerCase().includes("suc") || quote.service.toLowerCase().includes("punto");
+                            
+                            let friendlyName = quote.service.replace(/_/g, " ").replace(/correo argentino/gi, "").trim();
+                            const serviceUpper = quote.service.toUpperCase();
+                            
+                            if (serviceUpper.includes("STANDARD") || serviceUpper.includes("STANDAR")) {
+                              friendlyName = isSucursal ? "Retiro en Sucursal" : "Envío a Domicilio";
+                            } else if (serviceUpper.includes("PRIORITY") || serviceUpper.includes("EXPRESO")) {
+                              friendlyName = isSucursal ? "Retiro en Sucursal (Prioritario)" : "Envío a Domicilio (Prioritario)";
+                            } else if (serviceUpper.includes("DOM")) {
+                                friendlyName = "Envío a Domicilio";
+                            } else if (serviceUpper.includes("SUC")) {
+                                friendlyName = "Retiro en Sucursal";
+                            }
+                            
+                            return (
+                              <div key={`ship-${quote.carrier_id}-${quote.service_id}-${idx}`}>
+                                <button
+                                  onClick={() => setSelectedQuote(quote)}
+                                  className={`group relative w-full flex items-center justify-between p-5 border rounded-2xl transition-all duration-300 ${
+                                    isSelected
+                                      ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-[0_0_30px_rgba(var(--accent-rgb),0.15)] z-10"
+                                      : "border-[var(--border)] bg-[var(--surface-raised)]/30 hover:border-[var(--border-visible)] hover:bg-[var(--surface-raised)] hover:translate-y-[-2px]"
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-8 bg-[var(--accent)] rounded-full blur-[2px] opacity-40" />
+                                  )}
+                                  
+                                  <div className="flex items-center gap-4 text-left">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                      isSelected 
+                                        ? "bg-[var(--accent)] text-black scale-110" 
+                                        : "bg-white/5 text-[var(--text-secondary)] group-hover:bg-white/10"
+                                    }`}>
+                                      {isSucursal ? <Info size={18} /> : <Truck size={18} />}
+                                    </div>
+                                    
+                                    <div>
+                                      <p className={`text-sm font-display uppercase tracking-wider transition-colors ${
+                                        isSelected ? "text-[var(--text-display)]" : "text-[var(--text-primary)]"
+                                      }`}>
+                                        {friendlyName}
+                                      </p>
+                                      <div className="flex items-center gap-3 mt-1">
+                                        <div className="flex items-center gap-1.5">
+                                          <Clock size={10} className={isSelected ? "text-[var(--accent)]/60" : "text-[var(--text-disabled)]"} />
+                                          <p className={`text-[10px] font-medium transition-colors ${
+                                            isSelected ? "text-[var(--text-secondary)]" : "text-[var(--text-disabled)]"
+                                          }`}>
+                                            Llega en {quote.deliveryEstimate}
+                                          </p>
+                                        </div>
+                                        <span className="w-1 h-1 rounded-full bg-white/10" />
+                                        <p className="text-[9px] text-[var(--text-disabled)] uppercase tracking-widest">
+                                          Correo Argentino
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex flex-col items-end">
+                                      <span className={`text-base font-mono font-bold transition-all ${
+                                        isSelected ? "text-[var(--accent)] scale-105" : "text-[var(--text-display)]"
+                                      }`}>
+                                        ${quote.totalPrice.toLocaleString("es-AR")}
+                                      </span>
+                                      {isSelected && (
+                                        <span className="text-[9px] text-[var(--accent)] font-bold uppercase tracking-widest mt-1 animate-pulse">
+                                          Seleccionado
+                                        </span>
+                                      )}
+                                    </div>
+                                    {!isSelected && (
+                                      <ChevronRight size={14} className="text-[var(--border-visible)] group-hover:text-[var(--text-secondary)] transition-colors" />
+                                    )}
+                                  </div>
+                                </button>
+
+                                {isSelected && isSucursal && (
+                                  <div className="mt-2 px-4 pb-4 animate-in fade-in zoom-in-95 duration-300">
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                      <div className="flex items-center gap-2 mb-3">
+                                        <MapPin size={14} className="text-[var(--accent)]" />
+                                        <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--accent)]">Seleccioná tu punto de retiro</p>
+                                      </div>
+                                      
+                                      {isLoadingBranches ? (
+                                        <div className="flex items-center gap-2 py-2">
+                                          <div className="w-3 h-3 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
+                                          <p className="text-[10px] text-[var(--text-disabled)] font-medium">Buscando sucursales cercanas...</p>
+                                        </div>
+                                      ) : availableBranches.length > 0 ? (
+                                        <select
+                                          className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xs text-[var(--text-primary)] focus:border-[var(--accent)] outline-none transition-all cursor-pointer"
+                                          value={shippingInfo.locationId || ""}
+                                          onChange={(e) => {
+                                            const branch = availableBranches.find(b => b.id === e.target.value);
+                                            setShippingInfo(prev => ({ 
+                                              ...prev, 
+                                              locationId: e.target.value,
+                                              sucursalNombre: branch?.name 
+                                            }));
+                                          }}
+                                        >
+                                          {availableBranches.map((branch) => (
+                                            <option key={branch.id} value={branch.id} style={{ background: 'var(--surface)' }}>
+                                              {branch.name} - {branch.street} {branch.number}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <div className="p-3 border border-red-500/20 bg-red-500/5 rounded-lg flex items-center gap-2">
+                                          <AlertCircle size={14} className="text-red-500" />
+                                          <p className="text-[10px] text-red-400 font-medium">No se encontraron sucursales para este CP.</p>
+                                        </div>
+                                      )}
+                                      
+                                      {shippingInfo.locationId && !isLoadingBranches && (
+                                        <>
+                                          {(() => {
+                                            const branch = availableBranches.find(b => b.id === shippingInfo.locationId);
+                                            const coords = branch?.latitude && branch?.longitude 
+                                              ? [parseFloat(branch.longitude), parseFloat(branch.latitude)] as [number, number]
+                                              : null;
+                                            
+                                            if (!coords) return null;
+
+                                            return (
+                                              <div className="mt-4 h-[250px] w-full rounded-xl overflow-hidden border border-white/10 nd-animate-fade-in">
+                                                <Map center={coords} zoom={15}>
+                                                  <MapMarker position={coords} color="#c5a47e" />
+                                                </Map>
+                                              </div>
+                                            );
+                                          })()}
+
+                                          <div className="mt-3 flex items-start gap-2 p-2 rounded-lg bg-white/5 border border-white/5">
+                                            <CheckCircle2 size={12} className="text-[var(--accent)] mt-0.5" />
+                                            <p className="text-[9px] text-[var(--text-secondary)] leading-relaxed">
+                                              Tu paquete será enviado a la sucursal seleccionada para que lo retires cuando llegue.
+                                            </p>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : shippingInfo.codigoPostal && shippingInfo.codigoPostal.length >= 4 ? (
+                        <div className="p-8 rounded-2xl border border-dashed border-[var(--border)] bg-black/5 flex flex-col items-center justify-center text-center">
+                          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                            <Info size={20} className="text-[var(--text-disabled)]" />
+                          </div>
+                          <p className="text-[11px] text-[var(--text-disabled)] font-medium max-w-[200px]">
+                            {isLoadingQuotes ? "Buscando las mejores tarifas para tu zona..." : "No se encontraron opciones para este código postal."}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-6 rounded-2xl border border-[var(--border)] bg-white/[0.02] flex items-center gap-4">
+                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                            <Truck size={14} className="text-[var(--text-disabled)]" />
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)]">Ingresá tu código postal para ver opciones de envío.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {shippingMethod === "retiro" && (
-                    <div style={{ marginTop: "var(--space-lg)", padding: 'var(--space-md)', background: 'var(--surface-raised)', border: '1px solid var(--border)' }}>
-                      <p className="text-nd-label" style={{ marginBottom: '8px', color: 'var(--accent)' }}>Punto de retiro</p>
-                      <p style={{ fontSize: '13px', color: 'var(--text-primary)' }}>San Martin 1485, Baradero, Pcia de Buenos Aires.</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-disabled)', marginTop: '4px' }}>CP 2942. Lunes a Viernes 10hs a 18hs.</p>
+                    <div className="mt-8 p-6 rounded-2xl bg-[var(--surface-raised)] border border-[var(--border)] relative overflow-hidden group animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Truck size={60} strokeWidth={1} />
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                        <p className="text-nd-label uppercase tracking-widest text-[11px] font-bold text-[var(--accent)]">
+                          Punto de retiro
+                        </p>
+                      </div>
+                      
+                      <div className="relative z-10">
+                        <h4 className="text-[var(--text-display)] font-display text-base uppercase tracking-wide mb-1">
+                          Nadira Decants Showroom
+                        </h4>
+                        <p className="text-[13px] text-[var(--text-primary)] leading-relaxed">
+                          San Martin 1485, Baradero<br />
+                          Provincia de Buenos Aires
+                        </p>
+                        
+                        <div className="flex items-center gap-4 mt-5 pt-5 border-t border-white/5">
+                          <div className="flex items-center gap-1.5">
+                            <Clock size={12} className="text-[var(--text-disabled)]" />
+                            <span className="text-[10px] text-[var(--text-disabled)] font-medium uppercase tracking-wider">
+                              Lun a Vie — 10 a 18hs
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-[var(--accent)] font-bold uppercase tracking-wider">
+                              CP 2942
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   <button
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || isLoadingQuotes}
                     onClick={() => setStep("payment")}
                     className="nd-btn-primary w-full"
-                    style={{ marginTop: "var(--space-xl)", opacity: isFormValid ? 1 : 0.5 }}
+                    style={{ marginTop: "var(--space-xl)", opacity: isFormValid && !isLoadingQuotes ? 1 : 0.5 }}
                   >
-                    Continuar al Pago
+                    {isLoadingQuotes ? "Espere..." : "Continuar al Pago"}
                   </button>
                 </div>
               </div>
@@ -495,6 +828,7 @@ Adjunto el comprobante de pago a continuación.`;
                       couponData={couponData}
                       existingOrderId={createdOrderId}
                       onOrderCreated={setCreatedOrderId}
+                      selectedQuote={selectedQuote}
                     />
                   ) : (
                     <div className="space-y-6">

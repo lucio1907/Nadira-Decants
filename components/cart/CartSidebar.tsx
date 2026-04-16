@@ -102,9 +102,9 @@ export const CartSidebar = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-8">
-              {items.map((item) => (
+              {items.map((item, idx) => (
                 <div 
-                  key={`${item.id}-${item.variante.ml}`}
+                  key={`cart-sidebar-${item.id}-${item.variante.ml}-${idx}`}
                   className="flex gap-6 items-start group"
                 >
                   {/* Product Image */}

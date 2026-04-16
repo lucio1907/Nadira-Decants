@@ -39,6 +39,7 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [trackingInput, setTrackingInput] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
   const { showAlert } = useAlert();
 
 
@@ -161,6 +162,46 @@ Email: ${order.payerEmail}
 
     navigator.clipboard.writeText(info);
     showAlert("Datos de envío copiados al portapapeles ✅", { type: "success" });
+  };
+
+  const handleGenerateLabel = async (orderId: string) => {
+    setIsGeneratingLabel(true);
+    try {
+      const res = await fetch("/api/admin/shipping/generate-label", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al generar la etiqueta");
+      }
+
+      setOrders(prev => prev.map(o => o.id === orderId ? { 
+        ...o, 
+        status: "shipped", 
+        trackingNumber: data.trackingNumber,
+        labelUrl: data.labelUrl 
+      } : o));
+      
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ 
+          ...selectedOrder, 
+          status: "shipped", 
+          trackingNumber: data.trackingNumber,
+          labelUrl: data.labelUrl 
+        });
+      }
+
+      showAlert("Etiqueta generada con éxito ✅", { type: "success" });
+    } catch (err: any) {
+      console.error(err);
+      showAlert(err.message, { type: "error" });
+    } finally {
+      setIsGeneratingLabel(false);
+    }
   };
 
 
@@ -444,7 +485,7 @@ Email: ${order.payerEmail}
                     </thead>
                     <tbody className="divide-y divide-[var(--border)]">
                       {selectedOrder.items.map((item, idx) => (
-                        <tr key={`${item.id}-${idx}`}>
+                        <tr key={`order-item-${item.id || item.slug || idx}-${idx}`}>
                           <td className="px-4 py-3">
                             <div className="text-sm font-medium">{item.nombre}</div>
                             <div className="text-[10px] text-[var(--text-secondary)]">{item.marca}</div>
@@ -537,6 +578,59 @@ Email: ${order.payerEmail}
                     </div>
                   )}
 
+                  {selectedOrder.metodoEntrega === "envio" && (
+                    <div className="pt-4 space-y-3">
+                      <h3 className="text-[10px] font-body tracking-[0.2em] uppercase text-[var(--text-secondary)] border-b border-[var(--border)] pb-2 flex items-center justify-between">
+                        Logística Envia.com
+                        {selectedOrder.enviaService && (
+                          <span className="text-[8px] px-1.5 py-0.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded border border-[var(--accent)]/20">
+                            {selectedOrder.enviaService?.replace(/_/g, " ")}
+                          </span>
+                        )}
+                      </h3>
+                      
+                      {!selectedOrder.labelUrl ? (
+                        <button
+                          onClick={() => handleGenerateLabel(selectedOrder.id!)}
+                          disabled={isGeneratingLabel || !selectedOrder.enviaService}
+                          className={`w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--accent)] border border-[var(--accent)] rounded-xl text-[11px] font-body uppercase tracking-widest text-black hover:bg-[var(--accent)]/90 transition-all ${isGeneratingLabel ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {isGeneratingLabel ? (
+                            <span className="animate-pulse">Generando...</span>
+                          ) : (
+                            <>
+                              <Package size={16} />
+                              Generar Etiqueta Envia
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <a
+                          href={selectedOrder.labelUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl text-[11px] font-body uppercase tracking-widest text-green-500 hover:bg-green-500/20 transition-all"
+                        >
+                          <Eye size={16} />
+                          Ver Etiqueta PDF
+                        </a>
+                      )}
+                      
+                      {selectedOrder.trackingNumber && (
+                        <div className="p-3 bg-black/20 border border-[var(--border)] rounded-xl space-y-1">
+                          <p className="text-[9px] uppercase tracking-tighter text-[var(--text-secondary)]">Tracking ID</p>
+                          <p className="text-sm font-mono text-[var(--text-display)]">{selectedOrder.trackingNumber}</p>
+                        </div>
+                      )}
+
+                      {!selectedOrder.enviaService && !selectedOrder.labelUrl && (
+                        <p className="text-[10px] text-amber-500 italic">
+                          * Esta orden no tiene un servicio de Envia seleccionado (Orden antigua).
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 gap-2">
                     <button
                       onClick={() => handleUpdateStatus(selectedOrder.id!, "approved")}
@@ -608,12 +702,11 @@ Email: ${order.payerEmail}
           >
             Cerrar
           </button>
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
-    </div >
-  );
+    )}
+  </div>
+);
 }
 

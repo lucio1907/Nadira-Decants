@@ -4,6 +4,7 @@ import { revalidateTag } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getMercadoPagoToken } from "@/lib/mercadopago-server";
 import { sendOrderConfirmationEmail } from "@/lib/resend";
+import { reduceStockForOrder } from "@/lib/orders";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -44,50 +45,8 @@ export const POST = async (request: NextRequest) => {
              console.error("Order update error:", updateError);
           }
 
-          // Fetch order to get items and coupon
-          const { data: orderData } = await supabase
-            .from("ordenes")
-            .select("items, cupon_id")
-            .eq("id", orderId)
-            .single();
- 
-          if (orderData) {
-            // 1. Update stock for each variant
-            if (orderData.items) {
-              for (const item of orderData.items) {
-                 const { data: varianteData } = await supabase
-                   .from("variantes")
-                   .select("id, stock")
-                   .eq("producto_id", item.id)
-                   .eq("ml", item.variante.ml)
-                   .single();
-  
-                 if (varianteData) {
-                   const currentStock = varianteData.stock || 0;
-                   await supabase
-                     .from("variantes")
-                     .update({ stock: Math.max(0, currentStock - item.quantity) })
-                     .eq("id", varianteData.id);
-                 }
-              }
-            }
-
-            // 2. Increment coupon usage if exists
-            if (orderData.cupon_id) {
-              const { data: currentCoupon } = await supabase
-                .from("cupones")
-                .select("usos_actuales")
-                .eq("id", orderData.cupon_id)
-                .single();
-              
-              if (currentCoupon) {
-                await supabase
-                  .from("cupones")
-                  .update({ usos_actuales: (currentCoupon.usos_actuales || 0) + 1 })
-                  .eq("id", orderData.cupon_id);
-              }
-            }
-          }
+          // 1. Reduce stock using shared helper (idempotent)
+          await reduceStockForOrder(supabase, orderId);
 
           // 3. Send confirmation email
           sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error (webhook):", err));

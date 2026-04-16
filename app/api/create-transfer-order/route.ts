@@ -10,13 +10,15 @@ export const POST = async (request: NextRequest) => {
       shippingInfo, 
       shippingCost,
       couponCode,
-      orderId: existingOrderId
+      orderId: existingOrderId,
+      selectedQuote
     }: { 
       items: CartItem[]; 
       shippingInfo: ShippingInfo; 
       shippingCost: number;
       couponCode?: string;
       orderId?: string | null;
+      selectedQuote?: any;
     } = await request.json();
 
     if (!items || items.length === 0) {
@@ -69,12 +71,15 @@ export const POST = async (request: NextRequest) => {
           localidad: shippingInfo.ciudad,
           provincia: shippingInfo.provincia,
           cp: shippingInfo.codigoPostal,
-          notas: shippingInfo.notas
+          notas: shippingInfo.notas,
+          locationId: (shippingInfo as any).locationId
         } : null,
         shipping_cost: shippingCost || 0,
         cupon_id: cuponId,
         descuento: discount + transferDiscount,
-        mp_payment_id: "TRANSFERENCIA_WA" // Identificar explícitamente en el campo legacy
+        mp_payment_id: "TRANSFERENCIA_WA",
+        envia_carrier: selectedQuote?.carrier || 'correo-argentino',
+        envia_service: selectedQuote?.service || null
       };
 
       if (existingOrderId && !existingOrderId.startsWith('transfer-') && !existingOrderId.startsWith('mock-')) {
