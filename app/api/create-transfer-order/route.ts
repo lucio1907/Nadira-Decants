@@ -72,7 +72,10 @@ export const POST = async (request: NextRequest) => {
           provincia: shippingInfo.provincia,
           cp: shippingInfo.codigoPostal,
           notas: shippingInfo.notas,
-          locationId: (shippingInfo as any).locationId
+          locationId: shippingInfo.locationId,
+          sucursalNombre: shippingInfo.sucursalNombre,
+          sucursalPostalCode: shippingInfo.sucursalPostalCode,
+          sucursalCiudad: shippingInfo.sucursalCiudad
         } : null,
         shipping_cost: shippingCost || 0,
         cupon_id: cuponId,

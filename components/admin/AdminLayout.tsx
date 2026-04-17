@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package2, Settings, Menu, X, ShoppingCart, ExternalLink, BarChart3, Ticket } from "lucide-react";
+import { LogOut, Package2, Settings, Menu, X, ShoppingCart, ExternalLink, BarChart3, Ticket, Truck } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { useRouter } from "next/navigation";
@@ -43,6 +43,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     { name: "Estadísticas", href: "/admin/estadisticas", icon: BarChart3 },
     { name: "Productos", href: "/admin/productos", icon: Package2 },
     { name: "Ordenes", href: "/admin/ordenes", icon: ShoppingCart },
+    { name: "Envíos", href: "/admin/envios", icon: Truck },
     { name: "Cupones", href: "/admin/cupones", icon: Ticket },
     // { name: "Ajustes", href: "/admin/ajustes", icon: Settings },
   ];

@@ -1,3 +1,4 @@
+import { getShippingConfig, ShippingConfig, ShippingBox, getShippingBoxes } from "./shipping-config";
 export interface EnviaAddress {
   name: string;
   company?: string;
@@ -121,7 +122,11 @@ export class EnviaClient {
   }
 
   async getQuotes(destinationZip: string, province: string, items: any[]): Promise<EnviaQuoteResponse["data"]> {
-    const packages = this.mapItemsToPackages(items);
+    const [shippingConfig, shippingBoxes] = await Promise.all([
+      getShippingConfig(),
+      getShippingBoxes()
+    ]);
+    const packages = this.mapItemsToPackages(items, shippingConfig, shippingBoxes);
     
     // Map full province name to Envia/AR single letter code
     const stateCode = PROVINCIA_MAPPING[province] || province;
@@ -249,7 +254,7 @@ export class EnviaClient {
                 return (a.reference || a.name || "").localeCompare(b.reference || b.name || "");
               })
               .map((b: any) => ({
-                id: String(b.branch_id || b.branch_code || ""),
+                id: String(b.branch_code || b.branch_id || ""),
                 name: b.reference || b.name || "Sucursal Correo Argentino",
                 street: b.address?.street || "",
                 number: b.address?.number || "",
@@ -271,48 +276,124 @@ export class EnviaClient {
     return [];
   }
 
-  async generateLabel(order: any, carrier: string, service: string) {
-    const packages = this.mapItemsToPackages(order.items);
+  async generateLabel(order: any, carrierInput: string, service: string) {
+    console.log(">>> [ENVIA_CLIENT] GENERATING LABEL - VERSION: 2.5 (EMAIL_FIX) <<<");
+    const config = await getShippingConfig();
+    const packages = this.mapItemsToPackages(order.items, config);
     
     // Suporting both frontend (camelCase) and DB (snake_case) formats
-    const addr = order.direccion_envio || order.direccionEnvio;
+    let addr = order.direccion_envio || order.direccionEnvio;
+    if (typeof addr === 'string') {
+      try { addr = JSON.parse(addr); } catch (e) { console.error("Error parsing direccion_envio:", e); }
+    }
+
     if (!addr) throw new Error("No se encontró la dirección de envío en la orden.");
 
-    const provincia = addr.provincia;
-    const city = addr.localidad || addr.ciudad;
-    const cp = addr.cp || addr.codigoPostal;
-    const street = addr.calle;
-    const number = addr.numero;
-    const floor = addr.piso || addr.pisoDepto;
+    const locationId = addr.locationId || addr.branch_code || addr.branchCode;
+    const rawCp = addr.codigoPostal || addr.cp || addr.postalCode || "";
+    
+    // Mapeo robusto de campos (Soportando nombres en español e inglés)
+    const rawStreet = addr.calle || addr.street || "";
+    const rawNumber = addr.numero || addr.number || "";
+    const rawCity = addr.ciudad || addr.localidad || addr.city || addr.district || "";
+    const rawState = addr.provincia || addr.state || "";
 
-    const stateCode = PROVINCIA_MAPPING[provincia] || provincia;
+    // IMPORTANT: For branch shipments, we MUST use the branch's CP and City
+    const isSucursal = !!locationId || service.toLowerCase().includes("suc") || service.toLowerCase().includes("sucursal");
+    const finalCp = (isSucursal && (addr.sucursalPostalCode || addr.branchPostalCode)) ? (addr.sucursalPostalCode || addr.branchPostalCode) : rawCp;
+    const finalCity = (isSucursal && (addr.sucursalCiudad || addr.branchCity)) ? (addr.sucursalCiudad || addr.branchCity) : rawCity;
+    
+    // For branches, if street/number are empty, we use branch info as placeholder
+    const finalStreet = (isSucursal && !rawStreet) ? (addr.sucursalNombre || "Sucursal Correo Argentino") : rawStreet;
+    const finalNumber = (isSucursal && !rawNumber) ? (addr.sucursalPostalCode || finalCp || "1") : rawNumber;
+    
+    const carrier = carrierInput.toLowerCase().replace(/-/g, "").includes("correoargentino") 
+      ? "correoargentino" 
+      : carrierInput;
 
-    const payload = {
-      origin: ORIGIN_ADDRESS,
+    // Helper functions for normalization
+    const cleanPhone = (p: string) => (p || "").replace(/\D/g, "");
+    const cleanNumeric = (v: any) => String(v || "").replace(/\D/g, "");
+
+    // Normalización crítica para Correo Argentino
+    const displayPostalCode = isSucursal ? cleanNumeric(finalCp) : finalCp;
+    const locationIdClean = String(locationId || "").trim();
+    
+    // Normalización robusta de Provincia (Debe ser de 2 letras para Envia)
+    const stateInput = String(rawState || "").trim();
+    const stateUpper = stateInput.toUpperCase();
+    
+    let stateClean = "";
+    
+    // 1. Buscar en el mapeo (insensible a mayúsculas)
+    const foundKey = Object.keys(PROVINCIA_MAPPING).find(k => k.toUpperCase() === stateUpper);
+    if (foundKey) {
+      stateClean = PROVINCIA_MAPPING[foundKey];
+    } 
+    // 2. Si ya tiene 2 letras, lo usamos directo
+    else if (stateInput.length === 2) {
+      stateClean = stateUpper;
+    }
+    // 3. Casos especiales de CABA
+    else if (stateUpper.includes("CABA") || stateUpper.includes("CIUDAD AUTONOMA") || stateUpper === "C" || stateUpper.includes("FEDERAL")) {
+      stateClean = "DF";
+    }
+    // 4. Fallback: Si sigue siendo largo, enviamos BA como seguro para Argentina
+    else {
+      stateClean = "BA";
+    }
+
+    if (!stateClean) stateClean = "BA"; 
+
+    // FINAL CRITICAL FIX: For Correo Argentino, CABA MUST be "DF"
+    // CABA postal codes are normally between 1000 and 1499
+    const cpNum = parseInt(cleanNumeric(displayPostalCode));
+    if (cpNum >= 1000 && cpNum <= 1499) {
+      stateClean = "DF";
+    }
+    
+    const cityClean = finalCity || (isSucursal ? "CABA" : "");
+
+    const payload: any = {
+      origin: {
+        ...ORIGIN_ADDRESS,
+        phone: cleanPhone(ORIGIN_ADDRESS.phone),
+        postalCode: cleanNumeric(ORIGIN_ADDRESS.postalCode)
+      },
       destination: {
-        name: `${order.cliente_nombre || order.clienteNombre || ""} ${order.cliente_apellido || order.clienteApellido || ""}`.trim(),
-        company: "",
-        email: order.payer_email || order.payerEmail || "",
-        phone: order.cliente_telefono || order.clienteTelefono || "",
-        street: street,
-        number: number,
-        district: city, // Envia usually maps city to district for AR
-        city: city,
-        state: stateCode,
+        name: `${order.cliente_nombre || ""} ${order.cliente_apellido || ""}`.trim(),
+        company: isSucursal ? (addr.sucursalNombre || "Sucursal Correo Argentino") : "",
+        email: order.payer_email || order.cliente_email || order.clienteEmail || "",
+        phone: cleanPhone(order.cliente_telefono || order.clienteTelefono || ""),
+        street: finalStreet || "Calle Conocida",
+        number: finalNumber || "123",
+        district: cityClean,
+        city: cityClean,
+        state: stateClean,
         country: "AR",
-        postalCode: cp,
-        reference: floor || "",
+        postalCode: displayPostalCode,
+        reference: addr.referencia || addr.piso || addr.pisoDepto || "",
+        ...(locationId ? { 
+          branchCode: locationIdClean, 
+          locationId: locationIdClean 
+        } : {})
       },
       packages,
       shipment: {
         carrier: carrier,
         service: service,
-        type: 1,
-        ...(addr.locationId ? { destinationBranchCode: addr.locationId } : {})
+        type: isSucursal ? 11 : 1,
+        ...(locationId ? { 
+          destinationBranchCode: locationIdClean,
+          branchCode: locationIdClean,
+          locationId: locationIdClean,
+          destinationUnitCode: locationIdClean,
+          isReference: 1
+        } : {})
       },
       settings: {
         printFormat: "PDF",
-        printSize: "STOCK_4X6",
+        printSize: "STOCK_4X6"
       }
     };
 
@@ -341,39 +422,59 @@ export class EnviaClient {
     }
   }
 
-  private mapItemsToPackages(items: any[]): EnviaPackage[] {
-    // Collect total weight from all items. Ensure at least 100g if data is missing.
-    let totalWeight = items.reduce((sum, item) => {
-      const peso = item.variante?.peso_g || item.peso_g || 100;
-      return sum + (Number(peso) || 100) * item.quantity;
-    }, 0);
+  private mapItemsToPackages(items: any[], config: ShippingConfig, boxes: ShippingBox[] = []): EnviaPackage[] {
+    // Total quantity of items in the cart
+    const totalQuantity = items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+    
+    // 1. Determine the best box
+    let selectedBox: { length: number; width: number; height: number };
+    let packagingWeight = Number(config.packaging_base_weight_g) || 130; // Fallback global
+
+    if (boxes.length > 0) {
+      // Find the first box that can fit the totalQuantity
+      const bestFit = boxes.find(b => b.max_items >= totalQuantity);
+      
+      if (bestFit) {
+        selectedBox = {
+          length: Number(bestFit.largo_cm),
+          width: Number(bestFit.ancho_cm),
+          height: Number(bestFit.alto_cm)
+        };
+        packagingWeight = Number(bestFit.peso_base_g) || packagingWeight;
+      } else {
+        // Use the largest one available
+        const largestBox = boxes[boxes.length - 1];
+        selectedBox = {
+          length: Number(largestBox.largo_cm),
+          width: Number(largestBox.ancho_cm),
+          height: Number(largestBox.alto_cm)
+        };
+        packagingWeight = Number(largestBox.peso_base_g) || packagingWeight;
+        // Basic scaling for height if it exceeds max_items
+        selectedBox.height += Math.ceil((totalQuantity - largestBox.max_items) / 5) * 2;
+      }
+    } else {
+      // Fallback if no boxes configured
+      selectedBox = { length: 15, width: 10, height: 5 };
+      if (totalQuantity > 15) {
+        selectedBox.height += Math.floor((totalQuantity - 15) / 5) * 2;
+      }
+    }
+
+    // 2. Centralized Weight Logic:
+    // Total Weight = (Total items * weight per decant) + Weight of the selected Box
+    const decantWeight = Number(config.decant_weight_g) || 12;
+    let totalWeightG = (totalQuantity * decantWeight) + packagingWeight;
     
     // Safety check: Envia requires weight > 0
-    if (totalWeight <= 0) totalWeight = 100;
-    
-    // Heuristic for box size: if it's just one item, use its exact dimensions
-    // if more, use a box large enough (heuristic)
-    const isSingleItem = items.length === 1 && items[0].quantity === 1;
-    let boxSize;
-
-    if (isSingleItem) {
-      const v = items[0].variante || items[0];
-      boxSize = {
-        length: Number(v.largo_cm || 10),
-        width: Number(v.ancho_cm || 10),
-        height: Number(v.alto_cm || 5)
-      };
-    } else {
-      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-      boxSize = this.calculateBoxSize(itemCount);
-    }
+    if (totalWeightG <= 0) totalWeightG = 150; // Minimum safety fallback
 
     return [{
       content: "Perfumes / Fragancias",
       amount: 1,
       type: "box",
-      dimensions: boxSize,
-      weight: Math.max(0.1, totalWeight / 1000), // Convert to kg, min 0.1kg (100g)
+      dimensions: selectedBox,
+      weight: Math.max(0.1, totalWeightG / 1000), // Convert to kg, min 0.1kg (100g)
       insurance: 0,
       declaredValue: 0,
       weightUnit: "KG",
@@ -381,10 +482,5 @@ export class EnviaClient {
     }];
   }
 
-  private calculateBoxSize(itemCount: number) {
-    // Simple heuristic
-    if (itemCount <= 2) return { length: 15, width: 10, height: 5 };
-    if (itemCount <= 5) return { length: 20, width: 15, height: 10 };
-    return { length: 30, width: 20, height: 15 };
-  }
+  // Heuristic for box size is no longer used, we use global config now.
 }

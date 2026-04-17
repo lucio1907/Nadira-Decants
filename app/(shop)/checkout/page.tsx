@@ -32,7 +32,7 @@ const CheckoutPage = () => {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<"shipping" | "payment">("shipping");
   const [shippingMethod, setShippingMethod] = useState<"retiro" | "envio">("retiro");
-  const [paymentMethodMode, setPaymentMethodMode] = useState<"mp" | "transferencia">("transferencia");
+  const [paymentMethodMode, setPaymentMethodMode] = useState<"mp" | "transferencia">("mp");
   const [isProcessingTransfer, setIsProcessingTransfer] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
@@ -63,6 +63,10 @@ const CheckoutPage = () => {
   // Envia.com states
   const [shippingOptions, setShippingOptions] = useState<any[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
+  const isSucursalSelected = useMemo(() => {
+    return !!(selectedQuote?.service?.toLowerCase().includes("suc") || 
+              selectedQuote?.service?.toLowerCase().includes("sucursal"));
+  }, [selectedQuote]);
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
   const [enviaError, setEnviaError] = useState<string | null>(null);
 
@@ -183,7 +187,9 @@ const CheckoutPage = () => {
             setShippingInfo(prev => ({
               ...prev,
               locationId: data.branches[0].id,
-              sucursalNombre: data.branches[0].name
+              sucursalNombre: data.branches[0].name,
+              sucursalPostalCode: data.branches[0].postalCode,
+              sucursalCiudad: data.branches[0].city
             }));
           }
         }
@@ -197,15 +203,13 @@ const CheckoutPage = () => {
     fetchBranches();
   }, [selectedQuote, shippingInfo.codigoPostal]);
 
-  // Auto-fill city based on CP and Provincia
+  // Auto-fill province and city based on CP
   useEffect(() => {
-    const autoFillCity = async () => {
+    const autoFillLocation = async () => {
       if (
         shippingMethod !== "envio" ||
         !shippingInfo.codigoPostal ||
         shippingInfo.codigoPostal.length < 4 ||
-        !shippingInfo.provincia ||
-        isCityManuallyEdited ||
         isAutoFilling
       ) {
         return;
@@ -215,17 +219,45 @@ const CheckoutPage = () => {
       setLocationFetchError(false);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const res = await fetch(`/api/shipping/location?zipCode=${shippingInfo.codigoPostal}&province=${shippingInfo.provincia}`, {
+        // Pedimos locación a la API
+        const res = await fetch(`/api/shipping/location?zipCode=${shippingInfo.codigoPostal}`, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
         const data = await res.json();
 
         if (data.places && data.places.length > 0) {
-          // Obtener todas las localidades y normalizarlas
+          const firstPlace = data.places[0];
+          const apiState = firstPlace.state?.toUpperCase() || "";
+          
+          // 1. Detección automática de Provincia
+          let detectedProvince = "";
+          if (apiState.includes("CIUDAD AUTONOMA") || apiState === "C" || apiState === "DF" || apiState.includes("FEDERAL")) {
+            detectedProvince = "CABA";
+          } else if (apiState.includes("BUENOS AIRES") || apiState === "B") {
+            detectedProvince = "Buenos Aires";
+          } else {
+            // Lista de provincias para match exacto o parcial
+            const provincias = [
+              "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", 
+              "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", 
+              "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", 
+              "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"
+            ];
+            detectedProvince = provincias.find(p => apiState.includes(p.toUpperCase())) || "";
+          }
+
+          // Si detectamos la provincia y es distinta a la actual, la actualizamos
+          // Esto disparará el efecto de cotización automáticamente
+          let currentProv = shippingInfo.provincia;
+          if (detectedProvince && (!shippingInfo.provincia || shippingInfo.codigoPostal.length === 4)) {
+            currentProv = detectedProvince;
+          }
+
+          // 2. Procesamiento de Ciudades
           const cities = Array.from(new Set(data.places.map((p: any) => {
             return p["place name"]
               .split(" ")
@@ -234,35 +266,27 @@ const CheckoutPage = () => {
           }))) as string[];
 
           setAvailableCities(cities);
-          setIsManualCityInput(false); // Asegurar que volvemos a modo lista si hay resultados
+          setIsManualCityInput(false);
 
-          // Si la ciudad actual no está configurada o no pertenece a las nuevas opciones,
-          // seleccionamos la primera automáticamente.
-          if (!shippingInfo.ciudad || !cities.includes(shippingInfo.ciudad)) {
-            setShippingInfo(prev => ({
-              ...prev,
-              ciudad: cities[0]
-            }));
-          }
+          setShippingInfo(prev => ({
+            ...prev,
+            provincia: currentProv,
+            ciudad: (!prev.ciudad || !cities.includes(prev.ciudad)) ? cities[0] : prev.ciudad
+          }));
+
         } else {
           setAvailableCities([]);
           setLocationFetchError(true);
         }
       } catch (err: any) {
         clearTimeout(timeoutId);
-        if (err.name === 'AbortError') {
-          console.error("City fetch timed out");
-        } else {
-          console.error("Error auto-filling city:", err);
-        }
-        setAvailableCities([]);
-        setLocationFetchError(true);
+        console.error("Error auto-filling location:", err);
       } finally {
         setIsAutoFilling(false);
       }
     };
 
-    const timer = setTimeout(autoFillCity, 500); // Debounce
+    const timer = setTimeout(autoFillLocation, 500); // Debounce
     return () => clearTimeout(timer);
   }, [shippingInfo.codigoPostal, shippingInfo.provincia, shippingMethod]);
 
@@ -328,22 +352,24 @@ Adjunto el comprobante de pago a continuación.`;
       shippingInfo.telefono &&
       shippingInfo.email;
 
-    if (shippingMethod === "retiro") return basicInfo;
-
-    const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") ||
-      selectedQuote?.service.toLowerCase().includes("sucursal");
-
-    return (
-      basicInfo &&
-      shippingInfo.calle &&
-      shippingInfo.numero &&
+    const locationInfo = 
       shippingInfo.provincia &&
       shippingInfo.ciudad &&
-      shippingInfo.codigoPostal &&
-      selectedQuote &&
-      (!isSucursal || (shippingInfo.locationId && shippingInfo.sucursalNombre))
-    );
-  }, [shippingMethod, shippingInfo, selectedQuote]);
+      shippingInfo.codigoPostal;
+
+    if (shippingMethod === "retiro") return basicInfo;
+
+    // Si es envío, necesitamos datos básicos, ubicación y una cotización seleccionada
+    if (!basicInfo || !locationInfo || !selectedQuote) return false;
+
+    if (isSucursalSelected) {
+      // Para retiro en sucursal: requerimos la selección de un punto de retiro específico
+      return !!(shippingInfo.locationId && shippingInfo.sucursalNombre);
+    } else {
+      // Para envío a domicilio: requerimos calle y número
+      return !!(shippingInfo.calle && shippingInfo.numero);
+    }
+  }, [shippingMethod, shippingInfo, selectedQuote, isSucursalSelected]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -353,7 +379,14 @@ Adjunto el comprobante de pago a continuación.`;
       setIsCityManuallyEdited(false);
       setIsManualCityInput(false);
       setLocationFetchError(false);
-      setShippingInfo(prev => ({ ...prev, ciudad: "" }));
+      setShippingInfo(prev => ({ 
+        ...prev, 
+        ciudad: "",
+        locationId: undefined,
+        sucursalNombre: undefined,
+        sucursalPostalCode: undefined,
+        sucursalCiudad: undefined
+      }));
     }
 
     if (name === "ciudad" && value !== shippingInfo.ciudad) {
@@ -579,41 +612,6 @@ Adjunto el comprobante de pago a continuación.`;
 
                     {shippingMethod === "envio" && (
                       <>
-                        <div className="md:col-span-2 grid grid-cols-4 gap-4">
-                          <div className="col-span-3 flex flex-col">
-                            <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Calle</label>
-                            <input
-                              type="text"
-                              name="calle"
-                              placeholder="Av. Santa Fe"
-                              className="nd-input"
-                              value={shippingInfo.calle}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                          <div className="col-span-1 flex flex-col">
-                            <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Número</label>
-                            <input
-                              type="text"
-                              name="numero"
-                              placeholder="1234"
-                              className="nd-input"
-                              value={shippingInfo.numero}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Piso / Depto (Opcional)</label>
-                          <input
-                            type="text"
-                            name="piso"
-                            placeholder="2° B"
-                            className="nd-input"
-                            value={shippingInfo.piso}
-                            onChange={handleInputChange}
-                          />
-                        </div>
                         <div className="flex flex-col">
                           <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Código Postal</label>
                           <input
@@ -865,7 +863,11 @@ Adjunto el comprobante de pago a continuación.`;
                                             setShippingInfo(prev => ({
                                               ...prev,
                                               locationId: e.target.value,
-                                              sucursalNombre: branch?.name
+                                              sucursalNombre: branch?.name,
+                                              calle: branch?.street || prev.calle,
+                                              numero: branch?.number || prev.numero,
+                                              sucursalPostalCode: branch?.postalCode,
+                                              sucursalCiudad: branch?.city
                                             }));
                                           }}
                                         >
@@ -931,6 +933,52 @@ Adjunto el comprobante de pago a continuación.`;
                             <Truck size={14} className="text-[var(--text-disabled)]" />
                           </div>
                           <p className="text-[10px] text-[var(--text-secondary)]">Ingresá tu código postal para ver opciones de envío.</p>
+                        </div>
+                      )}
+
+                      {selectedQuote && !isSucursalSelected && (
+                        <div className="mt-8 pt-8 border-t border-white/5 animate-in fade-in slide-in-from-top-4 duration-500">
+                          <h3 className="text-nd-label uppercase tracking-widest text-[11px] font-bold mb-4 flex items-center gap-2">
+                            <MapPin size={14} className="text-[var(--accent)]" />
+                            Dirección de entrega
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                            <div className="md:col-span-2 grid grid-cols-4 gap-4">
+                              <div className="col-span-3 flex flex-col">
+                                <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Calle</label>
+                                <input
+                                  type="text"
+                                  name="calle"
+                                  placeholder="Av. Santa Fe"
+                                  className="nd-input"
+                                  value={shippingInfo.calle}
+                                  onChange={handleInputChange}
+                                />
+                              </div>
+                              <div className="col-span-1 flex flex-col">
+                                <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Número</label>
+                                <input
+                                  type="text"
+                                  name="numero"
+                                  placeholder="1234"
+                                  className="nd-input"
+                                  value={shippingInfo.numero}
+                                  onChange={handleInputChange}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex flex-col">
+                              <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Piso / Depto (Opcional)</label>
+                              <input
+                                type="text"
+                                name="piso"
+                                placeholder="2° B"
+                                className="nd-input"
+                                value={shippingInfo.piso}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1064,8 +1112,9 @@ Adjunto el comprobante de pago a continuación.`;
 
                       <button
                         onClick={handleTransferCheckout}
-                        disabled={isProcessingTransfer}
+                        disabled={isProcessingTransfer || !isFormValid}
                         className="nd-btn-primary w-full"
+                        style={{ opacity: isProcessingTransfer || !isFormValid ? 0.5 : 1 }}
                       >
                         {isProcessingTransfer ? "Procesando..." : "Confirmar compra por WhatsApp"}
                       </button>

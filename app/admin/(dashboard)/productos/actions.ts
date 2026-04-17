@@ -94,11 +94,7 @@ export const upsertProductAction = async (
       ml: Number(v.ml),
       precio: Number(v.precio),
       stock: Number(v.stock) || 0,
-      costo: Number(v.costo) || 0,
-      peso_g: Number(v.peso_g) || 100,
-      largo_cm: Number(v.largo_cm) || 10,
-      ancho_cm: Number(v.ancho_cm) || 10,
-      alto_cm: Number(v.alto_cm) || 5
+      costo: Number(v.costo) || 0
     }));
 
     const { error: insertVariantesError } = await supabase

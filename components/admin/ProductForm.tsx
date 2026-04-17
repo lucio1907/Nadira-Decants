@@ -29,10 +29,6 @@ const emptyForm: Omit<Producto, "id"> = {
     precio: 0, 
     stock: 0, 
     costo: 0,
-    peso_g: 100,
-    largo_cm: 10,
-    ancho_cm: 10,
-    alto_cm: 5
   }],
   mlTotalesBotella: 100,
   genero: "Unisex",
@@ -54,10 +50,6 @@ export const ProductForm = ({ initialData, isEdit = false }: ProductFormProps) =
       variantes: initialData.variantes.map(v => ({
         ...v,
         costo: v.costo || 0,
-        peso_g: v.peso_g || 100,
-        largo_cm: v.largo_cm || 10,
-        ancho_cm: v.ancho_cm || 10,
-        alto_cm: v.alto_cm || 5
       }))
     };
   });
