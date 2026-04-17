@@ -196,8 +196,8 @@ export function StatsDashboard({ data, days, onDaysChange }: StatsDashboardProps
                 Cargando gráfico...
               </div>
             )}
+
           </div>
-        </div>
 
         {/* Status Distribution */}
         <div className="nd-card !p-6 flex flex-col gap-4">
