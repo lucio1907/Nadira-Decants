@@ -122,7 +122,7 @@ export function StatsDashboard({ data, days, onDaysChange }: StatsDashboardProps
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard 
           title="Recaudación" 
           value={formatCurrency(data.kpis.totalRevenue)} 
@@ -161,9 +161,8 @@ export function StatsDashboard({ data, days, onDaysChange }: StatsDashboardProps
               <Zap size={12} /> Live
             </span>
           </div>
-          <div className="h-[300px] w-full mt-4 relative">
             {mounted ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={mounted && window.innerWidth < 1440 ? 240 : 300}>
                 <LineChart data={data.salesTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis 

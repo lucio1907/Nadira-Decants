@@ -133,7 +133,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 md:ml-64 p-4 md:p-8 min-w-0 bg-[var(--black)] transition-opacity duration-500 ${isPending ? 'opacity-30' : 'opacity-100'}`}>
+      <main className={`flex-1 md:ml-64 p-4 md:p-6 lg:p-8 min-w-0 bg-[var(--black)] transition-opacity duration-500 ${isPending ? 'opacity-30' : 'opacity-100'}`}>
         {children}
       </main>
 

@@ -12,6 +12,7 @@ import {
   Clock,
   XCircle,
   ChevronRight,
+  ChevronLeft,
   User,
   MapPin,
   Phone,
@@ -21,10 +22,13 @@ import {
   DollarSign,
   TrendingUp,
   AlertCircle,
-  MessageCircle
+  MessageCircle,
+  Copy,
+  Check
 } from "lucide-react";
 import { useAlert } from "@/hooks/useAlert";
 import { updateOrderAction } from "@/app/admin/(dashboard)/ordenes/actions";
+import { PremiumSelect } from "./PremiumSelect";
 
 interface OrdersListProps {
   initialOrders: Order[];
@@ -41,6 +45,15 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
   const [isPending, startTransition] = useTransition();
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
   const { showAlert } = useAlert();
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const handleCopyTracking = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedOrderId(id);
+    setTimeout(() => setCopiedOrderId(null), 2000);
+  };
 
 
   useEffect(() => {
@@ -77,6 +90,18 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
 
     return matchesFilter && matchesSearch;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const currentOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filter]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: Order["status"]) => {
     setIsLoading(true);
@@ -181,7 +206,6 @@ Email: ${order.payerEmail}
 
       setOrders(prev => prev.map(o => o.id === orderId ? { 
         ...o, 
-        status: "shipped", 
         trackingNumber: data.trackingNumber,
         labelUrl: data.labelUrl 
       } : o));
@@ -189,7 +213,6 @@ Email: ${order.payerEmail}
       if (selectedOrder?.id === orderId) {
         setSelectedOrder({ 
           ...selectedOrder, 
-          status: "shipped", 
           trackingNumber: data.trackingNumber,
           labelUrl: data.labelUrl 
         });
@@ -256,7 +279,7 @@ Email: ${order.payerEmail}
 
       {/* Filters & Actions */}
       <div className="flex flex-col xl:flex-row gap-4 xl:items-center justify-between">
-        <div className="relative w-full md:w-96">
+        <div className="relative w-full xl:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
           <input
             type="text"
@@ -272,23 +295,22 @@ Email: ${order.payerEmail}
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto w-full xl:w-auto pb-2 xl:pb-0 scrollbar-hide">
-          {["all", "whatsapp", "pending", "approved", "shipped", "delivered", "rejected"].map((s) => (
-            <button
-              key={s}
-              onClick={() => {
-                startTransition(() => {
-                  setFilter(s);
-                });
-              }}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-body uppercase tracking-widest border transition-all whitespace-nowrap ${filter === s
-                ? "bg-[var(--accent)] border-[var(--accent)] text-white"
-                : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
-            >
-              {s === "all" ? "Todos" : s === "whatsapp" ? "WhatsApp" : s === "pending" ? "Pendientes" : s === "approved" ? "Aprobados" : s === "shipped" ? "Enviados" : s === "delivered" ? "Entregados" : "Rechazados"}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+          <PremiumSelect
+            value={filter}
+            onChange={(val) => startTransition(() => setFilter(val))}
+            options={[
+              { label: "Todas las órdenes", value: "all" },
+              { label: "WhatsApp (Transf.)", value: "whatsapp" },
+              { label: "Pendientes", value: "pending" },
+              { label: "Aprobados", value: "approved" },
+              { label: "Enviados", value: "shipped" },
+              { label: "Entregados", value: "delivered" },
+              { label: "Rechazados", value: "rejected" }
+            ]}
+            placeholder="Estado"
+            className="w-full xl:w-60"
+          />
         </div>
       </div >
 
@@ -308,8 +330,8 @@ Email: ${order.payerEmail}
         </tr>
       </thead>
       <tbody className="divide-y divide-[var(--border)]">
-        {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => (
+        {currentOrders.length > 0 ? (
+          currentOrders.map((order) => (
             <tr
               key={order.id}
               onClick={() => setSelectedOrder(order)}
@@ -342,9 +364,25 @@ Email: ${order.payerEmail}
                   <span className="uppercase tracking-wider">{translateStatus(order.status)}</span>
                 </span>
                 {order.trackingNumber && (
-                  <div className="mt-1 flex items-center gap-1 text-[9px] text-[var(--accent)] font-mono">
-                    <Package size={10} />
-                    {order.trackingNumber}
+                  <div className="mt-1 flex items-center gap-2 text-[9px] text-[var(--accent)] font-mono">
+                    <div className="flex items-center gap-1">
+                      <Package size={10} />
+                      {order.trackingNumber}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopyTracking(order.trackingNumber!, order.id || "");
+                      }}
+                      className="p-1 hover:bg-[var(--accent)]/20 rounded transition-colors"
+                      title="Copiar seguimiento"
+                    >
+                      {copiedOrderId === order.id ? (
+                        <Check size={10} className="text-green-500" />
+                      ) : (
+                        <Copy size={10} />
+                      )}
+                    </button>
                   </div>
                 )}
               </td>
@@ -386,6 +424,59 @@ Email: ${order.payerEmail}
     </table>
   </div>
       </div >
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[var(--border)] pt-8">
+          <p className="text-[10px] font-body uppercase tracking-wider text-[var(--text-secondary)]">
+            Mostrando <span className="text-[var(--text-display)] font-medium">{Math.min(filteredOrders.length, itemsPerPage)}</span> de <span className="text-[var(--text-display)] font-medium">{filteredOrders.length}</span> órdenes
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] disabled:opacity-30 disabled:hover:text-[var(--text-secondary)] disabled:hover:border-[var(--border)] transition-all"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <div className="flex items-center gap-1">
+              {/* Simple logic for page numbers: show 5 surrounding pages if many */}
+              {Array.from({ length: totalPages }).map((_, i) => {
+                const pageNum = i + 1;
+                // Only show first, last, and pages around current
+                if (
+                  totalPages > 7 &&
+                  pageNum !== 1 &&
+                  pageNum !== totalPages &&
+                  (pageNum < currentPage - 1 || pageNum > currentPage + 1)
+                ) {
+                  if (pageNum === 2 || pageNum === totalPages - 1) {
+                    return <span key={pageNum} className="px-1 text-[var(--text-secondary)]">...</span>;
+                  }
+                  return null;
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-[10px] font-medium transition-all ${currentPage === pageNum ? "bg-[var(--accent)] text-black shadow-lg" : "border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)]"}`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] disabled:opacity-30 disabled:hover:text-[var(--text-secondary)] disabled:hover:border-[var(--border)] transition-all"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      )}
 
   {/* Detail Modal */ }
 {
@@ -567,14 +658,31 @@ Email: ${order.payerEmail}
 
                   {selectedOrder.metodoEntrega === "envio" && (
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">Nro. Seguimiento</label>
-                      <input
-                        type="text"
-                        value={trackingInput}
-                        onChange={(e) => setTrackingInput(e.target.value)}
-                        placeholder="Ej: CP123456789AR"
-                        className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-[var(--accent)] transition-all"
-                      />
+                       <label className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">Nro. Seguimiento</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={trackingInput}
+                          onChange={(e) => setTrackingInput(e.target.value)}
+                          placeholder="Ej: CP123456789AR"
+                          className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-[var(--accent)] transition-all pr-12"
+                        />
+                        {trackingInput && (
+                          <button
+                            onClick={() => {
+                              handleCopyTracking(trackingInput, "modal-input");
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+                            title="Copiar seguimiento"
+                          >
+                            {copiedOrderId === "modal-input" ? (
+                              <Check size={16} className="text-green-500" />
+                            ) : (
+                              <Copy size={16} />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -615,13 +723,7 @@ Email: ${order.payerEmail}
                           Ver Etiqueta PDF
                         </a>
                       )}
-                      
-                      {selectedOrder.trackingNumber && (
-                        <div className="p-3 bg-black/20 border border-[var(--border)] rounded-xl space-y-1">
-                          <p className="text-[9px] uppercase tracking-tighter text-[var(--text-secondary)]">Tracking ID</p>
-                          <p className="text-sm font-mono text-[var(--text-display)]">{selectedOrder.trackingNumber}</p>
-                        </div>
-                      )}
+
 
                       {!selectedOrder.enviaService && !selectedOrder.labelUrl && (
                         <p className="text-[10px] text-amber-500 italic">

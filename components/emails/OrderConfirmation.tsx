@@ -33,9 +33,12 @@ export const OrderConfirmationEmail = ({ order }: { order: Order }) => {
       padding: '40px 10px',
       margin: '0',
       width: '100%',
-    }}>
+      // Forced Dark Mode
+      colorScheme: 'dark only',
+      supportedColorSchemes: 'dark only',
+    } as any}>
       {/* Container with shadow and rounded corners */}
-      <table role="presentation" border={0} cellPadding="0" cellSpacing="0" style={{
+      <table role="presentation" border={0} cellPadding="0" cellSpacing="0" align="center" style={{
         maxWidth: '640px',
         margin: '0 auto',
         backgroundColor: colors.surface,
@@ -43,8 +46,10 @@ export const OrderConfirmationEmail = ({ order }: { order: Order }) => {
         overflow: 'hidden',
         border: `1px solid ${colors.border}`,
         width: '100%',
-      }}>
-        <tbody>
+        colorScheme: 'dark only',
+        supportedColorSchemes: 'dark only',
+      } as any}>
+        <tbody style={{ backgroundColor: colors.surface }}>
           <tr>
             <td>
               {/* Header - Editorial Style */}

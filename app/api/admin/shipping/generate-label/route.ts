@@ -68,8 +68,7 @@ export async function POST(req: NextRequest) {
       .update({
         envia_shipment_id: shipmentId.toString(),
         label_url: labelUrl,
-        nro_seguimiento: trackingNumber,
-        status: "shipped" // Automatically move to shipped status
+        nro_seguimiento: trackingNumber
       })
       .eq("id", orderId);
 

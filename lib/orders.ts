@@ -3,7 +3,7 @@ import { Order } from "@/types";
 import { Database } from "@/types/database";
 import { getProductsServer } from "./products-server";
 import { startOfDay, subDays, eachDayOfInterval, format } from "date-fns";
-import { sendOrderConfirmationEmail } from "./resend";
+import { sendOrderConfirmationEmail, sendShipmentConfirmationEmail } from "./resend";
 
 type DBOrder = Database["public"]["Tables"]["ordenes"]["Row"];
 
@@ -106,6 +106,11 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     // If it's becoming approved and wasn't before, send confirmation email
     if (status === "approved" && currentOrder.status !== "approved") {
         sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
+    }
+
+    // If it's becoming shipped and wasn't before, send shipment email
+    if (status === "shipped" && currentOrder.status !== "shipped") {
+        sendShipmentConfirmationEmail(orderId).catch(err => console.error("Async shipment email error:", err));
     }
   }
 

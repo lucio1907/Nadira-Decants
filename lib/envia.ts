@@ -204,29 +204,62 @@ export class EnviaClient {
         const data = await resp.json();
         
         if (Array.isArray(data) && data.length > 0) {
-          // Filtrar por código postal (algunos vienen como string, otros como número)
-          // Normalizamos el zipCode para comparar (ej: "C1000" -> "1000" si es necesario, 
-          // o simplemente coincidencia exacta si Envia usa el mismo formato)
-          const filtered = data.filter((b: any) => {
-            const bZip = String(b.address?.postalCode || "");
-            return bZip === zipCode || bZip.includes(zipCode) || zipCode.includes(bZip);
+          // Normalización de códigos postales para una búsqueda más flexible
+          const normalizeZip = (cp: string) => {
+            const clean = cp.toUpperCase().replace(/\s/g, "");
+            const match = clean.match(/[A-Z]?(\d{4})[A-Z]{0,3}/);
+            return match ? match[1] : clean;
+          };
+
+          const searchZip = normalizeZip(zipCode);
+          const isGenericCaba = searchZip === "1000";
+
+          let filtered = data.filter((b: any) => {
+            const bZipRaw = String(b.address?.postalCode || "");
+            const bZip = normalizeZip(bZipRaw);
+            const bState = String(b.address?.state || "").toUpperCase();
+
+            // Especial para CABA: Si ponen 1000, mostrar todo lo de DF (Ciudad Autónoma)
+            if (isGenericCaba && (bState === "DF" || bState === "CABA" || bState === "C")) {
+              return true;
+            }
+
+            return bZip === searchZip || bZip.includes(searchZip) || searchZip.includes(bZip);
           });
 
+          // Si no hay resultados exactos, intentamos una búsqueda más amplia por prefijo (primeros 3 dígitos)
+          if (filtered.length === 0 && searchZip.length >= 3) {
+            const prefix = searchZip.substring(0, 3);
+            filtered = data.filter((b: any) => {
+              const bZip = normalizeZip(String(b.address?.postalCode || ""));
+              return bZip.startsWith(prefix);
+            });
+          }
+
           if (filtered.length > 0) {
-            console.log(`[Envia] SUCCESS! Found ${filtered.length} branches for CP ${zipCode} (from ${data.length} total) using ${slug}`);
+            console.log(`[Envia] SUCCESS! Found ${filtered.length} branches for CP ${zipCode} (normalized: ${searchZip}) using ${slug}`);
             
-            return filtered.map((b: any) => ({
-              id: String(b.branch_id || b.branch_code || ""),
-              name: b.reference || b.name || "Sucursal Correo Argentino",
-              street: b.address?.street || "",
-              number: b.address?.number || "",
-              district: b.address?.locality || b.address?.district || "",
-              city: b.address?.city || "",
-              state: b.address?.state || "",
-              postalCode: b.address?.postalCode || zipCode,
-              latitude: b.address?.latitude || null,
-              longitude: b.address?.longitude || null,
-            }));
+            return filtered
+              .sort((a, b) => {
+                // Ordenar: primero las que tengan el CP exacto, luego por nombre
+                const aZip = normalizeZip(String(a.address?.postalCode || ""));
+                const bZip = normalizeZip(String(b.address?.postalCode || ""));
+                if (aZip === searchZip && bZip !== searchZip) return -1;
+                if (aZip !== searchZip && bZip === searchZip) return 1;
+                return (a.reference || a.name || "").localeCompare(b.reference || b.name || "");
+              })
+              .map((b: any) => ({
+                id: String(b.branch_id || b.branch_code || ""),
+                name: b.reference || b.name || "Sucursal Correo Argentino",
+                street: b.address?.street || "",
+                number: b.address?.number || "",
+                district: b.address?.locality || b.address?.district || "",
+                city: b.address?.city || "",
+                state: b.address?.state || "",
+                postalCode: b.address?.postalCode || zipCode,
+                latitude: b.address?.latitude || null,
+                longitude: b.address?.longitude || null,
+              }));
           }
         }
       } catch (e) {

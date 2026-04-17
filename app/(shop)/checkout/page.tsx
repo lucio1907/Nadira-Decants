@@ -58,7 +58,8 @@ const CheckoutPage = () => {
   const [validadingCoupon, setValidatingCoupon] = useState(false);
   const [couponData, setCouponData] = useState<{ code: string; discount: number; couponId: string } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
-  
+  const [countryCode, setCountryCode] = useState("+54");
+
   // Envia.com states
   const [shippingOptions, setShippingOptions] = useState<any[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
@@ -68,6 +69,13 @@ const CheckoutPage = () => {
   // Branches states
   const [availableBranches, setAvailableBranches] = useState<any[]>([]);
   const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+
+  // Auto-fill states
+  const [isCityManuallyEdited, setIsCityManuallyEdited] = useState(false);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [isManualCityInput, setIsManualCityInput] = useState(false);
+  const [locationFetchError, setLocationFetchError] = useState(false);
 
 
   useEffect(() => {
@@ -152,8 +160,8 @@ const CheckoutPage = () => {
   // Fetch branches when sucursal is selected
   useEffect(() => {
     const fetchBranches = async () => {
-      const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") || 
-                        selectedQuote?.service.toLowerCase().includes("sucursal");
+      const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") ||
+        selectedQuote?.service.toLowerCase().includes("sucursal");
 
       if (!isSucursal || !shippingInfo.codigoPostal) {
         setAvailableBranches([]);
@@ -164,18 +172,18 @@ const CheckoutPage = () => {
       try {
         const res = await fetch(`/api/shipping/branches?zipCode=${shippingInfo.codigoPostal}&carrier=${selectedQuote.carrier}`);
         const data = await res.json();
-        
+
         if (data.branches && data.branches.length > 0) {
           setAvailableBranches(data.branches);
-          
+
           // Verificar si el ID de sucursal actual sigue siendo válido en la nueva lista
           const stillExists = data.branches.some((b: any) => b.id === shippingInfo.locationId);
-          
+
           if (!stillExists) {
-            setShippingInfo(prev => ({ 
-              ...prev, 
+            setShippingInfo(prev => ({
+              ...prev,
               locationId: data.branches[0].id,
-              sucursalNombre: data.branches[0].name 
+              sucursalNombre: data.branches[0].name
             }));
           }
         }
@@ -188,6 +196,75 @@ const CheckoutPage = () => {
 
     fetchBranches();
   }, [selectedQuote, shippingInfo.codigoPostal]);
+
+  // Auto-fill city based on CP and Provincia
+  useEffect(() => {
+    const autoFillCity = async () => {
+      if (
+        shippingMethod !== "envio" ||
+        !shippingInfo.codigoPostal ||
+        shippingInfo.codigoPostal.length < 4 ||
+        !shippingInfo.provincia ||
+        isCityManuallyEdited ||
+        isAutoFilling
+      ) {
+        return;
+      }
+
+      setIsAutoFilling(true);
+      setLocationFetchError(false);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      try {
+        const res = await fetch(`/api/shipping/location?zipCode=${shippingInfo.codigoPostal}&province=${shippingInfo.provincia}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const data = await res.json();
+
+        if (data.places && data.places.length > 0) {
+          // Obtener todas las localidades y normalizarlas
+          const cities = Array.from(new Set(data.places.map((p: any) => {
+            return p["place name"]
+              .split(" ")
+              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(" ");
+          }))) as string[];
+
+          setAvailableCities(cities);
+          setIsManualCityInput(false); // Asegurar que volvemos a modo lista si hay resultados
+
+          // Si la ciudad actual no está configurada o no pertenece a las nuevas opciones,
+          // seleccionamos la primera automáticamente.
+          if (!shippingInfo.ciudad || !cities.includes(shippingInfo.ciudad)) {
+            setShippingInfo(prev => ({
+              ...prev,
+              ciudad: cities[0]
+            }));
+          }
+        } else {
+          setAvailableCities([]);
+          setLocationFetchError(true);
+        }
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          console.error("City fetch timed out");
+        } else {
+          console.error("Error auto-filling city:", err);
+        }
+        setAvailableCities([]);
+        setLocationFetchError(true);
+      } finally {
+        setIsAutoFilling(false);
+      }
+    };
+
+    const timer = setTimeout(autoFillCity, 500); // Debounce
+    return () => clearTimeout(timer);
+  }, [shippingInfo.codigoPostal, shippingInfo.provincia, shippingMethod]);
 
   const shippingCost = selectedQuote ? selectedQuote.totalPrice : 0;
 
@@ -206,11 +283,14 @@ const CheckoutPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items,
-          shippingInfo,
+          shippingInfo: {
+            ...shippingInfo,
+            telefono: `${countryCode} ${shippingInfo.telefono || ""}`
+          },
           shippingCost,
 
 
-           couponCode: couponData?.code,
+          couponCode: couponData?.code,
           orderId: createdOrderId,
           selectedQuote // Pass selected Envia quote
         })
@@ -242,7 +322,7 @@ Adjunto el comprobante de pago a continuación.`;
   };
 
   const isFormValid = useMemo(() => {
-    const basicInfo = 
+    const basicInfo =
       shippingInfo.nombre &&
       shippingInfo.apellido &&
       shippingInfo.telefono &&
@@ -250,8 +330,8 @@ Adjunto el comprobante de pago a continuación.`;
 
     if (shippingMethod === "retiro") return basicInfo;
 
-    const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") || 
-                      selectedQuote?.service.toLowerCase().includes("sucursal");
+    const isSucursal = selectedQuote?.service.toLowerCase().includes("suc") ||
+      selectedQuote?.service.toLowerCase().includes("sucursal");
 
     return (
       basicInfo &&
@@ -267,6 +347,46 @@ Adjunto el comprobante de pago a continuación.`;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    // Resetear flags de auto-completado si cambia el contexto de ubicación
+    if (name === "codigoPostal" || name === "provincia") {
+      setIsCityManuallyEdited(false);
+      setIsManualCityInput(false);
+      setLocationFetchError(false);
+      setShippingInfo(prev => ({ ...prev, ciudad: "" }));
+    }
+
+    if (name === "ciudad" && value !== shippingInfo.ciudad) {
+      if (value === "OTRA") {
+        setIsManualCityInput(true);
+        setIsCityManuallyEdited(true);
+        setShippingInfo(prev => ({ ...prev, ciudad: "" }));
+        return;
+      }
+      setIsCityManuallyEdited(true);
+    }
+    if (name === "telefono") {
+      const numbers = (value || "").replace(/\D/g, "");
+      let formatted = numbers;
+      
+      if (countryCode === "+54") {
+        const limited = numbers.slice(0, 10);
+        if (limited.length > 2 && limited.length <= 6) {
+          formatted = `${limited.slice(0, 2)} ${limited.slice(2)}`;
+        } else if (limited.length > 6) {
+          formatted = `${limited.slice(0, 2)} ${limited.slice(2, 6)}-${limited.slice(6)}`;
+        } else {
+          formatted = limited;
+        }
+      } else {
+        // Formato genérico para internacional: grupos de 4
+        formatted = numbers.match(/.{1,4}/g)?.join(" ") || numbers;
+      }
+      
+      setShippingInfo(prev => ({ ...prev, [name]: formatted }));
+      return;
+    }
+
     setShippingInfo((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -382,14 +502,68 @@ Adjunto el comprobante de pago a continuación.`;
                     </div>
                     <div className="flex flex-col">
                       <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Celular / WhatsApp</label>
-                      <input
-                        type="tel"
-                        name="telefono"
-                        placeholder="11 1234 5678"
-                        className="nd-input"
-                        value={shippingInfo.telefono}
-                        onChange={handleInputChange}
-                      />
+                      <div className="flex items-center gap-2 w-full">
+                        <select
+                          value={countryCode}
+                          onChange={(e) => {
+                            const newCode = e.target.value;
+                            setCountryCode(newCode);
+                            // Re-formatear el número actual con el nuevo código
+                            const numbers = (shippingInfo.telefono || "").replace(/\D/g, "");
+                            let reFormatted = numbers;
+                            if (newCode === "+54") {
+                              const limited = numbers.slice(0, 10);
+                              if (limited.length > 2 && limited.length <= 6) {
+                                reFormatted = `${limited.slice(0, 2)} ${limited.slice(2)}`;
+                              } else if (limited.length > 6) {
+                                reFormatted = `${limited.slice(0, 2)} ${limited.slice(2, 6)}-${limited.slice(6)}`;
+                              } else {
+                                reFormatted = limited;
+                              }
+                            } else {
+                              reFormatted = numbers.match(/.{1,4}/g)?.join(" ") || numbers;
+                            }
+                            setShippingInfo(prev => ({ ...prev, telefono: reFormatted }));
+                          }}
+                          className="text-[12px] h-[52px]"
+                          style={{ 
+                            background: 'transparent', 
+                            border: 'none',
+                            borderBottom: '1px solid var(--border-visible)',
+                            padding: '16px 0',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            width: '80px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="+54" style={{ background: 'var(--surface)' }}>🇦🇷 +54</option>
+                          <option value="+598" style={{ background: 'var(--surface)' }}>🇺🇾 +598</option>
+                          <option value="+56" style={{ background: 'var(--surface)' }}>🇨🇱 +56</option>
+                          <option value="+55" style={{ background: 'var(--surface)' }}>🇧🇷 +55</option>
+                          <option value="+591" style={{ background: 'var(--surface)' }}>🇧🇴 +591</option>
+                          <option value="+595" style={{ background: 'var(--surface)' }}>🇵🇾 +595</option>
+                          <option value="+1" style={{ background: 'var(--surface)' }}>🇺🇸 +1</option>
+                          <option value="+34" style={{ background: 'var(--surface)' }}>🇪🇸 +34</option>
+                        </select>
+                        <input
+                          type="tel"
+                          name="telefono"
+                          placeholder="11 1234 5678"
+                          className="flex-1 h-[52px]"
+                          style={{ 
+                            background: 'transparent', 
+                            border: 'none',
+                            borderBottom: '1px solid var(--border-visible)',
+                            padding: '16px 0',
+                            color: 'var(--text-primary)',
+                            outline: 'none',
+                            fontSize: '14px'
+                          }}
+                          value={shippingInfo.telefono}
+                          onChange={handleInputChange}
+                        />
+                      </div>
                     </div>
                     <div className="flex flex-col">
                       <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Email</label>
@@ -452,17 +626,6 @@ Adjunto el comprobante de pago a continuación.`;
                           />
                         </div>
                         <div className="flex flex-col">
-                          <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Ciudad / Localidad</label>
-                          <input
-                            type="text"
-                            name="ciudad"
-                            placeholder="Baradero"
-                            className="nd-input"
-                            value={shippingInfo.ciudad}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="flex flex-col">
                           <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Provincia</label>
                           <select
                             name="provincia"
@@ -498,6 +661,58 @@ Adjunto el comprobante de pago a continuación.`;
                             <option value="Tucumán" style={{ background: 'var(--surface)' }}>Tucumán</option>
                           </select>
                         </div>
+                        <div className="flex flex-col">
+                          <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Ciudad / Localidad</label>
+                          {isManualCityInput ? (
+                            <div className="flex flex-col gap-1">
+                              <input
+                                type="text"
+                                name="ciudad"
+                                placeholder="Baradero"
+                                className="nd-input"
+                                value={shippingInfo.ciudad}
+                                onChange={handleInputChange}
+                                autoFocus
+                              />
+                              <button 
+                                type="button"
+                                onClick={() => setIsManualCityInput(false)}
+                                className="text-[9px] text-nd-accent text-left underline opacity-70 hover:opacity-100 transition-opacity"
+                              >
+                                Volver a la lista
+                              </button>
+                            </div>
+                          ) : (
+                            <select
+                              name="ciudad"
+                              className="nd-input"
+                              style={{ background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', padding: '16px 0', borderBottom: '1px solid var(--border-visible)' }}
+                              value={shippingInfo.ciudad}
+                              onChange={handleInputChange as any}
+                            >
+                              {isAutoFilling ? (
+                                <option value="" disabled style={{ background: 'var(--surface)' }}>
+                                  Cargando localidades...
+                                </option>
+                              ) : locationFetchError ? (
+                                <option value="" disabled style={{ background: 'var(--surface)' }}>
+                                  No se encontró la localidad
+                                </option>
+                              ) : availableCities.length === 0 ? (
+                                <option value="" disabled style={{ background: 'var(--surface)' }}>
+                                  Ingrese CP y Provincia...
+                                </option>
+                              ) : (
+                                availableCities.map(city => (
+                                  <option key={city} value={city} style={{ background: 'var(--surface)' }}>{city}</option>
+                                ))
+                              )}
+                              <option value="OTRA" style={{ background: 'var(--surface)', fontStyle: 'italic' }}>
+                                — {availableCities.length > 0 || locationFetchError ? "Otra / Cargar manualmente" : "Cargar manualmente"} —
+                              </option>
+                            </select>
+                          )}
+                        </div>
                         <div className="md:col-span-2 flex flex-col">
                           <label className="text-nd-label !text-[9px] !mb-[-8px] !mt-3 opacity-60">Notas adicionales (Opcional)</label>
                           <input
@@ -521,7 +736,7 @@ Adjunto el comprobante de pago a continuación.`;
                           Opciones de Envío
                         </h3>
                       </div>
-                      
+
                       {isLoadingQuotes ? (
                         <div className="space-y-3">
                           {[1, 2].map((i) => (
@@ -548,61 +763,57 @@ Adjunto el comprobante de pago a continuación.`;
                       ) : shippingOptions.length > 0 ? (
                         <div className="space-y-3">
                           {shippingOptions.map((quote, idx) => {
-                            const isSelected = !!selectedQuote && 
-                                             selectedQuote.carrier === quote.carrier && 
-                                             selectedQuote.service === quote.service &&
-                                             selectedQuote.totalPrice === quote.totalPrice;
-                            
+                            const isSelected = !!selectedQuote &&
+                              selectedQuote.carrier === quote.carrier &&
+                              selectedQuote.service === quote.service &&
+                              selectedQuote.totalPrice === quote.totalPrice;
+
                             const isSucursal = quote.service.toLowerCase().includes("sucursal") || quote.service.toLowerCase().includes("suc") || quote.service.toLowerCase().includes("punto");
-                            
+
                             let friendlyName = quote.service.replace(/_/g, " ").replace(/correo argentino/gi, "").trim();
                             const serviceUpper = quote.service.toUpperCase();
-                            
+
                             if (serviceUpper.includes("STANDARD") || serviceUpper.includes("STANDAR")) {
                               friendlyName = isSucursal ? "Retiro en Sucursal" : "Envío a Domicilio";
                             } else if (serviceUpper.includes("PRIORITY") || serviceUpper.includes("EXPRESO")) {
                               friendlyName = isSucursal ? "Retiro en Sucursal (Prioritario)" : "Envío a Domicilio (Prioritario)";
                             } else if (serviceUpper.includes("DOM")) {
-                                friendlyName = "Envío a Domicilio";
+                              friendlyName = "Envío a Domicilio";
                             } else if (serviceUpper.includes("SUC")) {
-                                friendlyName = "Retiro en Sucursal";
+                              friendlyName = "Retiro en Sucursal";
                             }
-                            
+
                             return (
                               <div key={`ship-${quote.carrier_id}-${quote.service_id}-${idx}`}>
                                 <button
                                   onClick={() => setSelectedQuote(quote)}
-                                  className={`group relative w-full flex items-center justify-between p-5 border rounded-2xl transition-all duration-300 ${
-                                    isSelected
-                                      ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-[0_0_30px_rgba(var(--accent-rgb),0.15)] z-10"
-                                      : "border-[var(--border)] bg-[var(--surface-raised)]/30 hover:border-[var(--border-visible)] hover:bg-[var(--surface-raised)] hover:translate-y-[-2px]"
-                                  }`}
+                                  className={`group relative w-full flex items-center justify-between p-5 border rounded-2xl transition-all duration-300 ${isSelected
+                                    ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-[0_0_30px_rgba(var(--accent-rgb),0.15)] z-10"
+                                    : "border-[var(--border)] bg-[var(--surface-raised)]/30 hover:border-[var(--border-visible)] hover:bg-[var(--surface-raised)] hover:translate-y-[-2px]"
+                                    }`}
                                 >
                                   {isSelected && (
                                     <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-8 bg-[var(--accent)] rounded-full blur-[2px] opacity-40" />
                                   )}
-                                  
+
                                   <div className="flex items-center gap-4 text-left">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                                      isSelected 
-                                        ? "bg-[var(--accent)] text-black scale-110" 
-                                        : "bg-white/5 text-[var(--text-secondary)] group-hover:bg-white/10"
-                                    }`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isSelected
+                                      ? "bg-[var(--accent)] text-black scale-110"
+                                      : "bg-white/5 text-[var(--text-secondary)] group-hover:bg-white/10"
+                                      }`}>
                                       {isSucursal ? <Info size={18} /> : <Truck size={18} />}
                                     </div>
-                                    
+
                                     <div>
-                                      <p className={`text-sm font-display uppercase tracking-wider transition-colors ${
-                                        isSelected ? "text-[var(--text-display)]" : "text-[var(--text-primary)]"
-                                      }`}>
+                                      <p className={`text-sm font-body font-bold uppercase tracking-wider transition-colors ${isSelected ? "text-[var(--text-display)]" : "text-[var(--text-primary)]"
+                                        }`}>
                                         {friendlyName}
                                       </p>
                                       <div className="flex items-center gap-3 mt-1">
                                         <div className="flex items-center gap-1.5">
                                           <Clock size={10} className={isSelected ? "text-[var(--accent)]/60" : "text-[var(--text-disabled)]"} />
-                                          <p className={`text-[10px] font-medium transition-colors ${
-                                            isSelected ? "text-[var(--text-secondary)]" : "text-[var(--text-disabled)]"
-                                          }`}>
+                                          <p className={`text-[10px] font-medium transition-colors ${isSelected ? "text-[var(--text-secondary)]" : "text-[var(--text-disabled)]"
+                                            }`}>
                                             Llega en {quote.deliveryEstimate}
                                           </p>
                                         </div>
@@ -613,12 +824,11 @@ Adjunto el comprobante de pago a continuación.`;
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="flex items-center gap-4">
                                     <div className="flex flex-col items-end">
-                                      <span className={`text-base font-mono font-bold transition-all ${
-                                        isSelected ? "text-[var(--accent)] scale-105" : "text-[var(--text-display)]"
-                                      }`}>
+                                      <span className={`text-base font-mono font-bold transition-all ${isSelected ? "text-[var(--accent)] scale-105" : "text-[var(--text-display)]"
+                                        }`}>
                                         ${quote.totalPrice.toLocaleString("es-AR")}
                                       </span>
                                       {isSelected && (
@@ -640,7 +850,7 @@ Adjunto el comprobante de pago a continuación.`;
                                         <MapPin size={14} className="text-[var(--accent)]" />
                                         <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--accent)]">Seleccioná tu punto de retiro</p>
                                       </div>
-                                      
+
                                       {isLoadingBranches ? (
                                         <div className="flex items-center gap-2 py-2">
                                           <div className="w-3 h-3 rounded-full border-2 border-[var(--accent)] border-t-transparent animate-spin" />
@@ -652,10 +862,10 @@ Adjunto el comprobante de pago a continuación.`;
                                           value={shippingInfo.locationId || ""}
                                           onChange={(e) => {
                                             const branch = availableBranches.find(b => b.id === e.target.value);
-                                            setShippingInfo(prev => ({ 
-                                              ...prev, 
+                                            setShippingInfo(prev => ({
+                                              ...prev,
                                               locationId: e.target.value,
-                                              sucursalNombre: branch?.name 
+                                              sucursalNombre: branch?.name
                                             }));
                                           }}
                                         >
@@ -671,15 +881,15 @@ Adjunto el comprobante de pago a continuación.`;
                                           <p className="text-[10px] text-red-400 font-medium">No se encontraron sucursales para este CP.</p>
                                         </div>
                                       )}
-                                      
+
                                       {shippingInfo.locationId && !isLoadingBranches && (
                                         <>
                                           {(() => {
                                             const branch = availableBranches.find(b => b.id === shippingInfo.locationId);
-                                            const coords = branch?.latitude && branch?.longitude 
+                                            const coords = branch?.latitude && branch?.longitude
                                               ? [parseFloat(branch.longitude), parseFloat(branch.latitude)] as [number, number]
                                               : null;
-                                            
+
                                             if (!coords) return null;
 
                                             return (
@@ -731,28 +941,28 @@ Adjunto el comprobante de pago a continuación.`;
                       <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Truck size={60} strokeWidth={1} />
                       </div>
-                      
+
                       <div className="flex items-center gap-2 mb-4">
                         <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                         <p className="text-nd-label uppercase tracking-widest text-[11px] font-bold text-[var(--accent)]">
                           Punto de retiro
                         </p>
                       </div>
-                      
+
                       <div className="relative z-10">
-                        <h4 className="text-[var(--text-display)] font-display text-base uppercase tracking-wide mb-1">
-                          Nadira Decants Showroom
+                        <h4 className="text-[var(--text-display)] font-body font-bold text-base uppercase tracking-wide mb-1">
+                          Nadira Decants
                         </h4>
                         <p className="text-[13px] text-[var(--text-primary)] leading-relaxed">
                           San Martin 1485, Baradero<br />
                           Provincia de Buenos Aires
                         </p>
-                        
+
                         <div className="flex items-center gap-4 mt-5 pt-5 border-t border-white/5">
                           <div className="flex items-center gap-1.5">
                             <Clock size={12} className="text-[var(--text-disabled)]" />
                             <span className="text-[10px] text-[var(--text-disabled)] font-medium uppercase tracking-wider">
-                              Lun a Vie — 10 a 18hs
+                              Lun a Vie — 16hs a 20hs
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5">
@@ -823,7 +1033,10 @@ Adjunto el comprobante de pago a continuación.`;
                     <PaymentBrick
                       cart={items}
                       total={total}
-                      shippingInfo={shippingInfo}
+                        shippingInfo={{
+                          ...shippingInfo,
+                          telefono: `${countryCode} ${shippingInfo.telefono || ""}`
+                        }}
                       shippingCost={shippingCost}
                       couponData={couponData}
                       existingOrderId={createdOrderId}
@@ -865,59 +1078,59 @@ Adjunto el comprobante de pago a continuación.`;
             )}
           </div >
 
-  {/* Order Summary */ }
-  < div className = "lg:col-span-1 order-1 lg:order-2" >
-    <div
-      className="nd-card sticky"
-      style={{
-        top: "72px",
-        padding: "var(--space-lg)",
-      }}
-    >
-      <h2
-        className="text-nd-label"
-        style={{
-          color: "var(--text-secondary)",
-          marginBottom: "var(--space-lg)",
-        }}
-      >
-        Tu pedido
-      </h2>
+          {/* Order Summary */}
+          < div className="lg:col-span-1 order-1 lg:order-2" >
+            <div
+              className="nd-card sticky"
+              style={{
+                top: "72px",
+                padding: "var(--space-lg)",
+              }}
+            >
+              <h2
+                className="text-nd-label"
+                style={{
+                  color: "var(--text-secondary)",
+                  marginBottom: "var(--space-lg)",
+                }}
+              >
+                Tu pedido
+              </h2>
 
-      <div style={{ marginBottom: "var(--space-lg)", maxHeight: '300px', overflowY: 'auto' }}>
-        {items.map((item) => (
-          <div
-            key={`${item.id}-${item.variante.ml}`}
-            className="flex items-center gap-3"
-            style={{ padding: "var(--space-sm) 0" }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {item.nombre}
-              </p>
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-disabled)" }}>
-                {item.variante.ml}ml × {item.quantity}
-              </p>
-            </div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--text-primary)" }}>
-              ${(item.variante.precio * item.quantity).toLocaleString("es-AR")}
-            </p>
-          </div>
-        ))}
-      </div>
+              <div style={{ marginBottom: "var(--space-lg)", maxHeight: '300px', overflowY: 'auto' }}>
+                {items.map((item) => (
+                  <div
+                    key={`${item.id}-${item.variante.ml}`}
+                    className="flex items-center gap-3"
+                    style={{ padding: "var(--space-sm) 0" }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {item.nombre}
+                      </p>
+                      <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--text-disabled)" }}>
+                        {item.variante.ml}ml × {item.quantity}
+                      </p>
+                    </div>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--text-primary)" }}>
+                      ${(item.variante.precio * item.quantity).toLocaleString("es-AR")}
+                    </p>
+                  </div>
+                ))}
+              </div>
 
-      <div style={{ marginBottom: "var(--space-md)" }}>
-        {!couponData ? (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="CÓDIGO DE CUPÓN"
-                className="nd-input flex-1 uppercase"
-                style={{ fontSize: '11px', padding: '8px 12px' }}
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              />
+              <div style={{ marginBottom: "var(--space-md)" }}>
+                {!couponData ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="CÓDIGO DE CUPÓN"
+                        className="nd-input flex-1 uppercase"
+                        style={{ fontSize: '11px', padding: '8px 12px' }}
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      />
                       <button
                         onClick={handleApplyCoupon}
                         disabled={validadingCoupon || !couponCode}
@@ -988,7 +1201,7 @@ Adjunto el comprobante de pago a continuación.`;
                 </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-display)",
+                    fontFamily: "var(--font-body)",
                     fontSize: "var(--heading)",
                     color: "var(--text-display)",
                   }}
