@@ -3,6 +3,7 @@ import { getProductBySlug, getProducts } from "@/lib/products";
 import { VariantSelector } from "@/components/product/VariantSelector";
 import { ProductNotasSection } from "@/components/product/ProductNotasSection";
 import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
+import { PaymentMethods } from "@/components/product/PaymentMethods";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CreditCard, Truck, ShieldCheck, ArrowLeft, Mars, Venus, Users } from "lucide-react";
@@ -312,6 +313,9 @@ const ProductoPage = async ({
                     </div>
                   </div>
                 </div>
+                
+                {/* Available Payment Methods */}
+                <PaymentMethods />
               </div>
             </div>
           </div>
