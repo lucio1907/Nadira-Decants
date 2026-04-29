@@ -7,7 +7,7 @@ import { SectionHeading } from "./SectionHeading";
 export const AboutSection = () => {
   return (
     <section
-      id="sobre-nosotros"
+      id="sobre-mi"
       className="transition-colors duration-500 ease-in-out overflow-hidden"
       style={{
         background: "var(--black)",
@@ -59,7 +59,7 @@ export const AboutSection = () => {
             <ScrollReveal delay={0.4} className="h-full">
               <div className="relative h-full w-full overflow-hidden shadow-2xl">
                 <Image
-                  src="/images/about.jpg"
+                  src="/images/imagen-sobre-mi.webp"
                   alt="Arte del decantado Nadira"
                   fill
                   className="object-cover transition-transform duration-1000 hover:scale-105"

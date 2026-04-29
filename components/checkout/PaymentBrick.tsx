@@ -43,12 +43,12 @@ export const PaymentBrick = ({ cart, total, shippingInfo, shippingCost, couponDa
     initMercadoPago(publicKey, { locale: "es-AR" });
 
     const fetchPreference = async () => {
-      const currentPayload = JSON.stringify({ 
-        cart, 
-        shippingInfo, 
-        shippingCost, 
+      const currentPayload = JSON.stringify({
+        cart,
+        shippingInfo,
+        shippingCost,
         couponCode: couponData?.code,
-        selectedQuote 
+        selectedQuote
       });
       // Evitar re-fetch si los datos no cambiaron o si ya hay una petición en vuelo
       if (currentPayload === lastPayloadRef.current || isFetchingRef.current) return;

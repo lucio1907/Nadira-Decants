@@ -36,6 +36,7 @@ export const HeroSection = () => {
     <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
+      aria-label="Nadira Decants — Probá perfumes de lujo antes de elegir"
       className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden transition-colors duration-700 ease-in-out"
       style={{ background: "var(--black)" }}
     >
@@ -210,7 +211,7 @@ export const HeroSection = () => {
           <div className="relative w-full h-full max-w-md animate-float">
             <Image
               src="/images/hero_perfume_v5.png"
-              alt="Luxury Perfume Bottle"
+              alt="Frasco de perfume de lujo — Nadira Decants, decants de fragancias originales en Argentina"
               fill
               sizes="(min-width: 1024px) 540px, 1px"
               quality={100}
@@ -225,7 +226,7 @@ export const HeroSection = () => {
       <div className="absolute inset-0 lg:hidden z-[-1] opacity-30 pointer-events-none">
         <Image
           src="/images/hero_perfume_v5.png"
-          alt="Luxury Perfume Bottle Background"
+          alt="Fondo decorativo de perfume de lujo Nadira Decants"
           fill
           sizes="(max-width: 1024px) 100vw, 1px"
           quality={80}

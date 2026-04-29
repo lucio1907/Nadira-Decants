@@ -61,7 +61,7 @@ export const Navbar = () => {
   const links = [
     { href: "/", label: "Inicio" },
     { href: "/#productos", label: "Catálogo" },
-    { href: "/#sobre-nosotros", label: "Sobre Nosotros" },
+    { href: "/#sobre-mi", label: "Sobre Mí" },
     { href: "/#faq", label: "Preguntas" },
   ];
 
@@ -76,9 +76,8 @@ export const Navbar = () => {
           <Link
             href="/"
             onClick={handleHomeClick}
-            className={`transition-all duration-500 flex items-center ${
-              mobileOpen ? "opacity-0 pointer-events-none" : "opacity-100 hover:opacity-80"
-            }`}
+            className={`transition-all duration-500 flex items-center ${mobileOpen ? "opacity-0 pointer-events-none" : "opacity-100 hover:opacity-80"
+              }`}
           >
             <Image
               src="/images/logonadira.png"
@@ -221,7 +220,7 @@ export const Navbar = () => {
             {[
               { href: "/", label: "Inicio" },
               { href: "/#productos", label: "Catálogo" },
-              { href: "/#sobre-nosotros", label: "Sobre Nosotros" },
+              { href: "/#sobre-mi", label: "Sobre Mí" },
               { href: "/#faq", label: "Preguntas" },
               { href: "/carrito", label: "Carrito" }
             ].map((link, i) => (

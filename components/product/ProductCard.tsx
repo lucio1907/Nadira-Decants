@@ -102,7 +102,7 @@ export const ProductCard = ({ producto, index = 0 }: Props) => {
               {producto.imagenes?.[0] ? (
                 <Image
                   src={producto.imagenes[0]}
-                  alt={producto.nombre}
+                  alt={`Decant de ${producto.nombre} de ${producto.marca} — Perfume original en formato decant | Nadira Decants`}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
                   quality={90}

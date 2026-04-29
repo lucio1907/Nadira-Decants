@@ -41,7 +41,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   };
   const navItems = [
     { name: "Estadísticas", href: "/admin/estadisticas", icon: BarChart3 },
-    { name: "Métricas", href: "/admin/metricas", icon: Activity },
+    { name: "Métricas Web", href: "/admin/metricas", icon: Activity },
     { name: "Productos", href: "/admin/productos", icon: Package2 },
     { name: "Ordenes", href: "/admin/ordenes", icon: ShoppingCart },
     { name: "Embalaje", href: "/admin/envios", icon: Box },

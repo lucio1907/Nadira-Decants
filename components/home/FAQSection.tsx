@@ -46,6 +46,8 @@ export const FAQSection = () => {
   return (
     <section
       id="faq"
+      role="region"
+      aria-label="Preguntas frecuentes sobre decants de perfumes"
       className="transition-colors duration-500 ease-in-out"
       style={{
         background: "var(--surface-raised)",

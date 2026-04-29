@@ -36,7 +36,7 @@ export const Footer = () => {
     explorar: [
       { label: "Inicio", href: "/" },
       { label: "Catálogo", href: "/#productos" },
-      { label: "Sobre Nosotros", href: "/#sobre-nosotros" },
+      { label: "Sobre Mí", href: "/#sobre-mi" },
       { label: "Preguntas Frecuentes", href: "/#faq" },
     ],
     social: [
@@ -187,7 +187,7 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div className="order-2 md:order-1">
+          <div className="order-2 md:order-1 flex flex-col md:flex-row items-center gap-2 md:gap-4">
             <p
               className="text-nd-label"
               style={{
@@ -199,6 +199,16 @@ export const Footer = () => {
             >
               © {currentYear} NADIRA DECANTS. Todos los derechos reservados.
             </p>
+            <span className="hidden md:inline text-[var(--text-disabled)] text-[10px]">·</span>
+            <a
+              href="https://autogestion.produccion.gob.ar/consumidores"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] tracking-wide transition-colors duration-300 hover:text-[var(--accent)]"
+              style={{ color: "var(--text-disabled)" }}
+            >
+              Defensa del Consumidor
+            </a>
           </div>
 
           <div className="order-3">

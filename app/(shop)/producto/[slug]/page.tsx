@@ -4,9 +4,12 @@ import { VariantSelector } from "@/components/product/VariantSelector";
 import { ProductNotasSection } from "@/components/product/ProductNotasSection";
 import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
 import { PaymentMethods } from "@/components/product/PaymentMethods";
+import { JsonLd } from "@/components/common/JsonLd";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CreditCard, Truck, ShieldCheck, ArrowLeft, Mars, Venus, Users } from "lucide-react";
+
+const SITE_URL = "https://nadiradecants.com.ar";
 
 export const generateStaticParams = async () => {
   const products = await getProducts();
@@ -23,9 +26,41 @@ export const generateMetadata = async ({
 
   if (!producto) return { title: "Producto no encontrado — Nadira" };
 
+  const lowestPrice = producto.variantes.length > 0
+    ? Math.min(...producto.variantes.map((v) => v.precio))
+    : 0;
+
+  const productUrl = `${SITE_URL}/producto/${slug}`;
+  const productImage = producto.imagenes?.[0] || "/images/og-default.png";
+
   return {
-    title: `${producto.nombre} — ${producto.marca} | Nadira Decants`,
-    description: producto.descripcion,
+    title: `${producto.nombre} — ${producto.marca}`,
+    description: `${producto.descripcion} Decant original de ${producto.marca} desde $${lowestPrice.toLocaleString("es-AR")}. Envíos a todo Argentina.`,
+    alternates: {
+      canonical: `/producto/${slug}`,
+    },
+    openGraph: {
+      title: `${producto.nombre} — ${producto.marca} | Nadira Decants`,
+      description: `${producto.descripcion} Decant original desde $${lowestPrice.toLocaleString("es-AR")}.`,
+      type: "website",
+      locale: "es_AR",
+      url: productUrl,
+      siteName: "Nadira Decants",
+      images: [
+        {
+          url: productImage,
+          width: 800,
+          height: 1000,
+          alt: `Decant de ${producto.nombre} de ${producto.marca} — Nadira Decants`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${producto.nombre} — ${producto.marca} | Nadira Decants`,
+      description: `Decant original de ${producto.marca} desde $${lowestPrice.toLocaleString("es-AR")}. Envíos a todo Argentina.`,
+      images: [productImage],
+    },
   };
 };
 
@@ -39,8 +74,117 @@ const ProductoPage = async ({
 
   if (!producto) notFound();
 
+  const lowestPrice = producto.variantes.length > 0
+    ? Math.min(...producto.variantes.map((v) => v.precio))
+    : 0;
+  const totalStock = producto.variantes.reduce((acc, v) => acc + (v.stock || 0), 0);
+  const productUrl = `${SITE_URL}/producto/${slug}`;
+
+  // JSON-LD: Product schema with Offer
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: producto.nombre,
+    description: producto.descripcion,
+    image: producto.imagenes,
+    brand: {
+      "@type": "Brand",
+      name: producto.marca,
+    },
+    sku: producto.slug,
+    url: productUrl,
+    category: "Perfumes > Decants",
+    audience: {
+      "@type": "PeopleAudience",
+      suggestedGender: producto.genero === "Hombre" ? "male" : producto.genero === "Mujer" ? "female" : "unisex",
+    },
+    offers: producto.variantes.map((v) => ({
+      "@type": "Offer",
+      price: v.precio,
+      priceCurrency: "ARS",
+      availability: v.stock > 0
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: productUrl,
+      itemCondition: "https://schema.org/NewCondition",
+      seller: {
+        "@type": "Organization",
+        name: "Nadira Decants",
+      },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "AR",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          businessDays: {
+            "@type": "QuantitativeValue",
+            minValue: 3,
+            maxValue: 10,
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "AR",
+        returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+      },
+    })),
+    ...(producto.notas && {
+      additionalProperty: [
+        ...(producto.notas.salida?.length ? [{
+          "@type": "PropertyValue",
+          name: "Notas de Salida",
+          value: producto.notas.salida.join(", "),
+        }] : []),
+        ...(producto.notas.corazon?.length ? [{
+          "@type": "PropertyValue",
+          name: "Notas de Corazón",
+          value: producto.notas.corazon.join(", "),
+        }] : []),
+        ...(producto.notas.fondo?.length ? [{
+          "@type": "PropertyValue",
+          name: "Notas de Fondo",
+          value: producto.notas.fondo.join(", "),
+        }] : []),
+      ],
+    }),
+  };
+
+  // JSON-LD: BreadcrumbList
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Inicio",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Catálogo",
+        item: `${SITE_URL}/#productos`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${producto.marca} — ${producto.nombre}`,
+        item: productUrl,
+      },
+    ],
+  };
+
   return (
     <div className="pt-20 lg:pt-24">
+      {/* Structured Data */}
+      <JsonLd data={productJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
+
       {/* Breadcrumb — refined with back arrow */}
       <div
         style={{
@@ -52,6 +196,7 @@ const ProductoPage = async ({
       >
         <div className="container-nd" style={{ padding: "var(--space-md) var(--space-md)" }}>
           <nav
+            aria-label="Breadcrumb"
             className="flex items-center gap-3 overflow-x-auto whitespace-nowrap"
             style={{
               fontFamily: "var(--font-body)",
@@ -87,6 +232,7 @@ const ProductoPage = async ({
 
       {/* Product Detail */}
       <section
+        aria-label={`Detalle de ${producto.nombre} de ${producto.marca}`}
         className="nd-grain nd-mesh-dark overflow-hidden relative"
         style={{
           paddingTop: "clamp(2rem, 5vw, 4rem)",
