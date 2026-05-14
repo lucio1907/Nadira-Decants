@@ -1,4 +1,4 @@
-import { createAdminClient } from "./lib/supabase/server";
+import { createAdminClient } from "../lib/supabase/server";
 import dotenv from "dotenv";
 dotenv.config();
 

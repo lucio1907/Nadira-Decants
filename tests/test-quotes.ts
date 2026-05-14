@@ -1,4 +1,4 @@
-import { CorreoArgentinoClient } from "./lib/correo-argentino";
+import { CorreoArgentinoClient } from "../lib/correo-argentino";
 import dotenv from "dotenv";
 dotenv.config();
 

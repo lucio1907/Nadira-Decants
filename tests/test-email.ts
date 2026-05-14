@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { sendShipmentConfirmationEmail } from "./lib/resend";
-import { updateOrderStatus } from "./lib/orders";
-import { getOrders } from "./lib/orders";
+import { sendShipmentConfirmationEmail } from "../lib/resend";
+import { updateOrderStatus } from "../lib/orders";
+import { getOrders } from "../lib/orders";
 
 async function run() {
   const orders = await getOrders();
