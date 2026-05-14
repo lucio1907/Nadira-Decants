@@ -24,7 +24,8 @@ import {
   AlertCircle,
   MessageCircle,
   Copy,
-  Check
+  Check,
+  Send
 } from "lucide-react";
 import { useAlert } from "@/hooks/useAlert";
 import { updateOrderAction } from "@/app/admin/(dashboard)/ordenes/actions";
@@ -110,9 +111,10 @@ export default function OrdersList({ initialOrders }: OrdersListProps) {
         const result = await updateOrderAction(orderId, newStatus, trackingInput);
 
         if (result.success) {
-          setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, trackingNumber: trackingInput } : o));
+          const finalStatus = result.newStatus || newStatus;
+          setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: finalStatus, trackingNumber: trackingInput } : o));
           if (selectedOrder?.id === orderId) {
-            setSelectedOrder({ ...selectedOrder, status: newStatus, trackingNumber: trackingInput });
+            setSelectedOrder({ ...selectedOrder, status: finalStatus, trackingNumber: trackingInput });
           }
           showAlert("Estado actualizado correctamente", { type: "success" });
         } else {
@@ -218,7 +220,7 @@ Email: ${order.payerEmail}
         });
       }
 
-      showAlert("Etiqueta generada con éxito ✅", { type: "success" });
+      showAlert("Orden importada a MiCorreo con éxito ✅", { type: "success" });
     } catch (err: any) {
       console.error(err);
       showAlert(err.message, { type: "error" });
@@ -284,6 +286,7 @@ Email: ${order.payerEmail}
           <input
             type="text"
             placeholder="Buscar por cliente, ID o email..."
+            suppressHydrationWarning={true}
             className="w-full pl-10 pr-4 py-2 bg-[var(--surface-raised)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             defaultValue={searchTerm}
             onChange={(e) => {
@@ -664,22 +667,18 @@ Email: ${order.payerEmail}
                                 type="text"
                                 value={trackingInput}
                                 onChange={(e) => setTrackingInput(e.target.value)}
-                                placeholder="Ej: CP123456789AR"
+                                placeholder="Pegá el número de seguimiento de MiCorreo aquí..."
                                 className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:border-[var(--accent)] transition-all pr-12"
                               />
-                              {trackingInput && (
+                              {trackingInput !== (selectedOrder.trackingNumber || "") && (
                                 <button
-                                  onClick={() => {
-                                    handleCopyTracking(trackingInput, "modal-input");
-                                  }}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
-                                  title="Copiar seguimiento"
+                                  onClick={() => handleUpdateStatus(selectedOrder.id!, selectedOrder.status)}
+                                  disabled={isLoading}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 px-3 bg-[var(--accent)] text-black rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[var(--accent)]/90 transition-all disabled:opacity-50 flex items-center gap-1"
+                                  title="Guardar seguimiento y enviar mail"
                                 >
-                                  {copiedOrderId === "modal-input" ? (
-                                    <Check size={16} className="text-green-500" />
-                                  ) : (
-                                    <Copy size={16} />
-                                  )}
+                                  <Send size={12} />
+                                  {isLoading ? '...' : 'Enviar'}
                                 </button>
                               )}
                             </div>
@@ -689,7 +688,7 @@ Email: ${order.payerEmail}
                         {selectedOrder.metodoEntrega === "envio" && (
                           <div className="pt-4 space-y-3">
                             <h3 className="text-[10px] font-body tracking-[0.2em] uppercase text-[var(--text-secondary)] border-b border-[var(--border)] pb-2 flex items-center justify-between">
-                              Logística Envia.com
+                              Logística Correo Argentino
                               {selectedOrder.enviaService && (
                                 <span className="text-[8px] px-1.5 py-0.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded border border-[var(--accent)]/20">
                                   {selectedOrder.enviaService?.replace(/_/g, " ")}
@@ -704,30 +703,35 @@ Email: ${order.payerEmail}
                                 className={`w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--accent)] border border-[var(--accent)] rounded-xl text-[11px] font-body uppercase tracking-widest text-black hover:bg-[var(--accent)]/90 transition-all ${isGeneratingLabel ? 'opacity-50 cursor-not-allowed' : ''}`}
                               >
                                 {isGeneratingLabel ? (
-                                  <span className="animate-pulse">Generando...</span>
+                                  <span className="animate-pulse">Importando...</span>
                                 ) : (
                                   <>
                                     <Package size={16} />
-                                    Generar Etiqueta Correo
+                                    Importar a MiCorreo
                                   </>
                                 )}
                               </button>
                             ) : (
                               <a
-                                href={selectedOrder.labelUrl}
+                                href="https://www.correoargentino.com.ar/MiCorreo/public/mis-envios"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl text-[11px] font-body uppercase tracking-widest text-green-500 hover:bg-green-500/20 transition-all"
+                                className="w-full flex flex-col items-center justify-center gap-1 px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl hover:bg-green-500/20 transition-all text-green-500 text-center"
                               >
-                                <Eye size={16} />
-                                Ver Etiqueta PDF
+                                <div className="flex items-center gap-2 text-[11px] font-body uppercase tracking-widest">
+                                  <Eye size={16} />
+                                  Imprimir desde MiCorreo
+                                </div>
+                                <span className="text-[9px] opacity-80 mt-1 lowercase first-letter:uppercase">
+                                  El pedido fue importado. Ingresá a tu portal para generar la etiqueta.
+                                </span>
                               </a>
                             )}
 
 
                             {!selectedOrder.enviaService && !selectedOrder.labelUrl && (
                               <p className="text-[10px] text-amber-500 italic">
-                                * Esta orden no tiene un servicio de Envia seleccionado (Orden antigua).
+                                * Esta orden no tiene un servicio de Correo seleccionado (Orden antigua).
                               </p>
                             )}
                           </div>

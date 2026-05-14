@@ -470,7 +470,7 @@ input[type="reset"] {
 
 .nd-segment:hover {
   border-color: var(--border-visible);
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .nd-segment-active {
@@ -479,6 +479,10 @@ input[type="reset"] {
   border-color: var(--text-display);
   transform: scale(1.02);
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+.nd-segment-active:hover {
+  color: var(--black);
 }
 
 .nd-segment-disabled {

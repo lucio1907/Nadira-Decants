@@ -13,7 +13,7 @@ export async function updateOrderAction(
   trackingNumber?: string
 ) {
   try {
-    await updateOrderStatus(orderId, status, trackingNumber);
+    const result = await updateOrderStatus(orderId, status, trackingNumber);
     
     // Revalidate relevant paths and tags
     revalidatePath("/admin/ordenes", "page");
@@ -21,7 +21,7 @@ export async function updateOrderAction(
     revalidateTag("ordenes", { expire: 0 });
     revalidateTag("productos", { expire: 0 });
     
-    return { success: true };
+    return { success: true, newStatus: typeof result === 'object' ? result.newStatus : status };
   } catch (error) {
     console.error("Error in updateOrderAction:", error);
     return { 

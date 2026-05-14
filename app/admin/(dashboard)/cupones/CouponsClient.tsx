@@ -73,6 +73,7 @@ export function CouponsClient({ initialCoupons }: Props) {
               placeholder="BUSCAR CÓDIGO..."
               className="nd-input !pl-12 w-full uppercase tracking-widest text-sm"
               value={searchTerm}
+              suppressHydrationWarning={true}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>

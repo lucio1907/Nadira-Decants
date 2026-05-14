@@ -207,6 +207,7 @@ export const CatalogSection = ({ productos }: CatalogSectionProps) => {
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Buscar por nombre, marca..."
+              suppressHydrationWarning={true}
               className="w-full bg-transparent border-none outline-none transition-all duration-300"
               style={{
                 paddingLeft: "28px",

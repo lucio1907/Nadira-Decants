@@ -75,7 +75,7 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
   // Fetch current order to check previous status
   const { data: currentOrder } = await supabase
     .from("ordenes")
-    .select("status, items, cupon_id")
+    .select("status, items, cupon_id, nro_seguimiento")
     .eq("id", orderId)
     .single();
 
@@ -84,8 +84,18 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     updated_at: new Date().toISOString() 
   };
 
+  // Track if tracking number was updated to something new and not empty
+  const isNewTracking = trackingNumber !== undefined && 
+                        trackingNumber !== "" && 
+                        trackingNumber !== (currentOrder as any).nro_seguimiento;
+
   if (trackingNumber !== undefined) {
     updateData.nro_seguimiento = trackingNumber;
+    if (isNewTracking) {
+      (updateData as any).shipment_email_sent = false; // Reset so email can be sent again
+      updateData.status = "shipped"; // Automatically change status to shipped
+      status = "shipped"; // Update local variable so subsequent logic knows it's shipped
+    }
   }
 
   const { error } = await supabase
@@ -107,14 +117,18 @@ export async function updateOrderStatus(orderId: string, status: Order["status"]
     if (status === "approved" && currentOrder.status !== "approved") {
         sendOrderConfirmationEmail(orderId).catch(err => console.error("Async email error:", err));
     }
+  }
 
-    // If it's becoming shipped and wasn't before, send shipment email
-    if (status === "shipped" && currentOrder.status !== "shipped") {
-        sendShipmentConfirmationEmail(orderId).catch(err => console.error("Async shipment email error:", err));
+  if (currentOrder) {
+    // Send shipment email if becoming shipped OR if a new tracking number was added
+    console.log("DEBUG: Checking email logic. isNewTracking:", isNewTracking, "status:", status);
+    if ((status === "shipped" && currentOrder.status !== "shipped") || isNewTracking) {
+        console.log("DEBUG: Calling sendShipmentConfirmationEmail for order", orderId);
+        sendShipmentConfirmationEmail(orderId).then(() => console.log("DEBUG: email promise resolved")).catch(err => console.error("Async shipment email error:", err));
     }
   }
 
-  return true;
+  return { success: true, newStatus: status };
 }
 
 /**

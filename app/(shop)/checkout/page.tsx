@@ -64,8 +64,8 @@ const CheckoutPage = () => {
   const [shippingOptions, setShippingOptions] = useState<any[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
   const isSucursalSelected = useMemo(() => {
-    return !!(selectedQuote?.service?.toLowerCase().includes("suc") || 
-              selectedQuote?.service?.toLowerCase().includes("sucursal"));
+    return !!(selectedQuote?.service?.toLowerCase().includes("suc") ||
+      selectedQuote?.service?.toLowerCase().includes("sucursal"));
   }, [selectedQuote]);
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
   const [enviaError, setEnviaError] = useState<string | null>(null);
@@ -174,7 +174,7 @@ const CheckoutPage = () => {
 
       setIsLoadingBranches(true);
       try {
-        const res = await fetch(`/api/shipping/branches?zipCode=${shippingInfo.codigoPostal}&carrier=${selectedQuote.carrier}`);
+        const res = await fetch(`/api/shipping/branches?zipCode=${shippingInfo.codigoPostal}&carrier=${selectedQuote.carrier}&province=${shippingInfo.provincia}`);
         const data = await res.json();
 
         if (data.branches && data.branches.length > 0) {
@@ -192,6 +192,15 @@ const CheckoutPage = () => {
               sucursalCiudad: data.branches[0].city
             }));
           }
+        } else {
+          setAvailableBranches([]);
+          setShippingInfo(prev => ({
+            ...prev,
+            locationId: undefined,
+            sucursalNombre: undefined,
+            sucursalPostalCode: undefined,
+            sucursalCiudad: undefined
+          }));
         }
       } catch (err) {
         console.error("Error fetching branches:", err);
@@ -232,22 +241,33 @@ const CheckoutPage = () => {
         if (data.places && data.places.length > 0) {
           const firstPlace = data.places[0];
           const apiState = firstPlace.state?.toUpperCase() || "";
-          
+
           // 1. Detección automática de Provincia
           let detectedProvince = "";
-          if (apiState.includes("CIUDAD AUTONOMA") || apiState === "C" || apiState === "DF" || apiState.includes("FEDERAL")) {
+          const cpNum = parseInt(shippingInfo.codigoPostal, 10);
+
+          // Fuerza CABA si el código postal está entre 1000 y 1499 (rango oficial de CABA)
+          if (!isNaN(cpNum) && cpNum >= 1000 && cpNum <= 1499) {
+            detectedProvince = "CABA";
+          } else if (apiState.includes("CIUDAD AUTONOMA") || apiState === "C" || apiState === "DF" || apiState.includes("FEDERAL")) {
             detectedProvince = "CABA";
           } else if (apiState.includes("BUENOS AIRES") || apiState === "B") {
             detectedProvince = "Buenos Aires";
           } else {
             // Lista de provincias para match exacto o parcial
             const provincias = [
-              "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", 
-              "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", 
-              "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", 
+              "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos",
+              "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones",
+              "Neuquén", "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz",
               "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"
             ];
-            detectedProvince = provincias.find(p => apiState.includes(p.toUpperCase())) || "";
+
+            // Función para sacar tildes
+            const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            detectedProvince = provincias.find(p =>
+              removeAccents(apiState).includes(removeAccents(p.toUpperCase()))
+            ) || "";
           }
 
           // Si detectamos la provincia y es distinta a la actual, la actualizamos
@@ -352,7 +372,7 @@ Adjunto el comprobante de pago a continuación.`;
       shippingInfo.telefono &&
       shippingInfo.email;
 
-    const locationInfo = 
+    const locationInfo =
       shippingInfo.provincia &&
       shippingInfo.ciudad &&
       shippingInfo.codigoPostal;
@@ -379,8 +399,8 @@ Adjunto el comprobante de pago a continuación.`;
       setIsCityManuallyEdited(false);
       setIsManualCityInput(false);
       setLocationFetchError(false);
-      setShippingInfo(prev => ({ 
-        ...prev, 
+      setShippingInfo(prev => ({
+        ...prev,
         ciudad: "",
         locationId: undefined,
         sucursalNombre: undefined,
@@ -401,21 +421,14 @@ Adjunto el comprobante de pago a continuación.`;
     if (name === "telefono") {
       const numbers = (value || "").replace(/\D/g, "");
       let formatted = numbers;
-      
+
       if (countryCode === "+54") {
-        const limited = numbers.slice(0, 10);
-        if (limited.length > 2 && limited.length <= 6) {
-          formatted = `${limited.slice(0, 2)} ${limited.slice(2)}`;
-        } else if (limited.length > 6) {
-          formatted = `${limited.slice(0, 2)} ${limited.slice(2, 6)}-${limited.slice(6)}`;
-        } else {
-          formatted = limited;
-        }
+        formatted = numbers.slice(0, 10);
       } else {
         // Formato genérico para internacional: grupos de 4
         formatted = numbers.match(/.{1,4}/g)?.join(" ") || numbers;
       }
-      
+
       setShippingInfo(prev => ({ ...prev, [name]: formatted }));
       return;
     }
@@ -491,7 +504,7 @@ Adjunto el comprobante de pago a continuación.`;
                       }}
                       className={`nd-segment ${shippingMethod === "retiro" ? "nd-segment-active" : ""}`}
                     >
-                      Retiro en Local
+                      Retiro en Local (Gratis)
                     </button>
                     <button
                       onClick={() => {
@@ -500,7 +513,7 @@ Adjunto el comprobante de pago a continuación.`;
                       }}
                       className={`nd-segment ${shippingMethod === "envio" ? "nd-segment-active" : ""}`}
                     >
-                      Envío a domicilio
+                      Envío a domicilio (Correo Argentino)
                     </button>
                   </div>
                 </div>
@@ -559,8 +572,8 @@ Adjunto el comprobante de pago a continuación.`;
                             setShippingInfo(prev => ({ ...prev, telefono: reFormatted }));
                           }}
                           className="text-[12px] h-[52px]"
-                          style={{ 
-                            background: 'transparent', 
+                          style={{
+                            background: 'transparent',
                             border: 'none',
                             borderBottom: '1px solid var(--border-visible)',
                             padding: '16px 0',
@@ -584,8 +597,8 @@ Adjunto el comprobante de pago a continuación.`;
                           name="telefono"
                           placeholder="11 1234 5678"
                           className="flex-1 h-[52px]"
-                          style={{ 
-                            background: 'transparent', 
+                          style={{
+                            background: 'transparent',
                             border: 'none',
                             borderBottom: '1px solid var(--border-visible)',
                             padding: '16px 0',
@@ -672,7 +685,7 @@ Adjunto el comprobante de pago a continuación.`;
                                 onChange={handleInputChange}
                                 autoFocus
                               />
-                              <button 
+                              <button
                                 type="button"
                                 onClick={() => setIsManualCityInput(false)}
                                 className="text-[9px] text-nd-accent text-left underline opacity-70 hover:opacity-100 transition-opacity"
@@ -771,7 +784,11 @@ Adjunto el comprobante de pago a continuación.`;
                             let friendlyName = quote.service.replace(/_/g, " ").replace(/correo argentino/gi, "").trim();
                             const serviceUpper = quote.service.toUpperCase();
 
-                            if (serviceUpper.includes("STANDARD") || serviceUpper.includes("STANDAR")) {
+                            if (serviceUpper.includes("CLASICO") || serviceUpper.includes("CLASSIC")) {
+                              friendlyName = isSucursal ? "Sucursal: Correo Clásico" : "Domicilio: Correo Clásico";
+                            } else if (serviceUpper.includes("EXPRESO") || serviceUpper.includes("EXPRESS")) {
+                              friendlyName = isSucursal ? "Sucursal: Envío Rápido" : "Domicilio: Envío Rápido";
+                            } else if (serviceUpper.includes("STANDARD") || serviceUpper.includes("STANDAR")) {
                               friendlyName = isSucursal ? "Retiro en Sucursal" : "Envío a Domicilio";
                             } else if (serviceUpper.includes("PRIORITY") || serviceUpper.includes("EXPRESO")) {
                               friendlyName = isSucursal ? "Retiro en Sucursal (Prioritario)" : "Envío a Domicilio (Prioritario)";
@@ -967,16 +984,29 @@ Adjunto el comprobante de pago a continuación.`;
                                 />
                               </div>
                             </div>
-                            <div className="flex flex-col">
-                              <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Piso / Depto (Opcional)</label>
-                              <input
-                                type="text"
-                                name="piso"
-                                placeholder="2° B"
-                                className="nd-input"
-                                value={shippingInfo.piso}
-                                onChange={handleInputChange}
-                              />
+                            <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                              <div className="flex flex-col">
+                                <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Piso (Opcional)</label>
+                                <input
+                                  type="text"
+                                  name="piso"
+                                  placeholder="Ej: 2"
+                                  className="nd-input"
+                                  value={shippingInfo.piso}
+                                  onChange={handleInputChange}
+                                />
+                              </div>
+                              <div className="flex flex-col">
+                                <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Depto (Opcional)</label>
+                                <input
+                                  type="text"
+                                  name="depto"
+                                  placeholder="Ej: B"
+                                  className="nd-input"
+                                  value={shippingInfo.depto}
+                                  onChange={handleInputChange}
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1081,10 +1111,10 @@ Adjunto el comprobante de pago a continuación.`;
                     <PaymentBrick
                       cart={items}
                       total={total}
-                        shippingInfo={{
-                          ...shippingInfo,
-                          telefono: `${countryCode} ${shippingInfo.telefono || ""}`
-                        }}
+                      shippingInfo={{
+                        ...shippingInfo,
+                        telefono: `${countryCode} ${shippingInfo.telefono || ""}`
+                      }}
                       shippingCost={shippingCost}
                       couponData={couponData}
                       existingOrderId={createdOrderId}

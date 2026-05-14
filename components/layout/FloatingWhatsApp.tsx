@@ -8,11 +8,17 @@ export const FloatingWhatsApp = () => {
 
   useEffect(() => {
     setMounted(true);
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 5000);
+    
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   if (!mounted) return null;

@@ -161,6 +161,7 @@ export default function ProductsList({ initialProducts }: { initialProducts: Pro
               type="text"
               placeholder="Buscar perfume o marca..."
               defaultValue={searchTerm}
+              suppressHydrationWarning={true}
               onChange={(e) => {
                 const val = e.target.value;
                 startTransition(() => {

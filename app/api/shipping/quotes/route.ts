@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { EnviaClient } from "@/lib/envia";
+import { CorreoArgentinoClient } from "@/lib/correo-argentino";
 
 export async function POST(req: Request) {
   try {
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const envia = new EnviaClient();
+    const envia = new CorreoArgentinoClient();
     const quotes = await envia.getQuotes(zipCode, province, items);
 
     return NextResponse.json({ quotes });

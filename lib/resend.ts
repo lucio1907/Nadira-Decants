@@ -74,11 +74,14 @@ export async function sendShipmentConfirmationEmail(orderId: string) {
       return;
     }
 
-    // Only send if status is shipped, has tracking number, and hasn't been sent yet
-    if (dbOrder.status !== 'shipped' || !dbOrder.nro_seguimiento || dbOrder.shipment_email_sent) {
+    console.log("DEBUG: inside sendShipmentConfirmationEmail, dbOrder tracking:", dbOrder.nro_seguimiento, "email_sent:", (dbOrder as any).shipment_email_sent);
+    // Only send if it has a tracking number and hasn't been sent yet
+    if (!dbOrder.nro_seguimiento || (dbOrder as any).shipment_email_sent) {
+      console.log("DEBUG: Returning early because no tracking number or already sent");
       return;
     }
 
+    console.log("DEBUG: Rendering email and sending...");
     const order = mapOrder(dbOrder);
     const emailHtml = await render(React.createElement(ShipmentConfirmationEmail, { order }));
 
@@ -96,7 +99,7 @@ export async function sendShipmentConfirmationEmail(orderId: string) {
 
     await supabase
       .from('ordenes')
-      .update({ shipment_email_sent: true })
+      .update({ shipment_email_sent: true } as any)
       .eq('id', orderId);
 
     console.log(`Shipment confirmation email sent successfully for order ${orderId}`);
