@@ -31,7 +31,7 @@ export const generateMetadata = async ({
     : 0;
 
   const productUrl = `${SITE_URL}/producto/${slug}`;
-  const productImage = producto.imagenes?.[0] || "/images/og-default.png";
+  const productImage = producto.imagenes?.[0] || "/images/logonadira.png";
 
   return {
     title: `${producto.nombre} — ${producto.marca}`,
@@ -327,6 +327,16 @@ const ProductoPage = async ({
                     >
                       {producto.marca}
                     </p>
+                    <span
+                      className="text-[9px] font-bold tracking-[0.15em] uppercase py-0.5 px-2 rounded-sm"
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        color: "var(--text-disabled)",
+                        border: "1px solid var(--border-visible)",
+                      }}
+                    >
+                      Decant
+                    </span>
                     {producto.genero && (
                       <div className="flex items-center gap-2 pl-3 border-l border-[var(--border-visible)]">
                         {producto.genero === "Hombre" ? (

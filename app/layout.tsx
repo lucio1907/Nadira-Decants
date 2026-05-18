@@ -24,28 +24,32 @@ const dmSans = DM_Sans({
 const SITE_URL = "https://nadiradecants.com.ar";
 const SITE_NAME = "Nadira Decants";
 const SITE_DESCRIPTION =
-  "Descubrí las fragancias más exclusivas del mundo en formato decant. Perfumes originales de lujo en envases de 5ml. Probá antes de comprometerte con el frasco completo. Envíos a todo Argentina.";
+  "Decants de perfumes de lujo originales en Argentina. Probá fragancias de 5ml antes de comprar el frasco completo. Envíos a todo el país por Correo Argentino. Pagá con Mercado Pago.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
     default: "Nadira — Decants de Perfumes de Lujo | Argentina",
     template: "%s | Nadira Decants",
   },
   description: SITE_DESCRIPTION,
   keywords: [
-    "perfumes",
-    "decants",
-    "fragancias de lujo",
-    "perfumes originales",
-    "nadira decants",
+    "decants de perfumes",
     "decants argentina",
-    "perfumes en formato chico",
-    "probar perfumes",
+    "que es un decant",
+    "decant perfume 5ml",
+    "perfumes originales argentina",
+    "fragancias de lujo argentina",
+    "probar perfumes antes de comprar",
+    "comprar decants online argentina",
+    "perfumería de nicho argentina",
+    "perfumes importados argentina",
+    "decants baratos argentina",
+    "nadira decants",
     "atomizadores de perfume",
-    "comprar decants online",
-    "perfumería de nicho",
-    "decants de perfumes originales",
+    "fragancias nicho argentina",
+    "perfumes de lujo en cuotas",
   ],
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
@@ -54,29 +58,29 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Nadira — Decants de Perfumes de Lujo",
+    title: "Nadira — Decants de Perfumes de Lujo | Argentina",
     description:
-      "Descubrí las fragancias más exclusivas del mundo en formato decant. Perfumes originales de lujo, probá antes de comprar el frasco completo.",
+      "Probá perfumes de lujo originales en formato decant de 5ml. Sin comprar el frasco completo. Envíos a todo Argentina.",
     type: "website",
     locale: "es_AR",
     url: SITE_URL,
     siteName: SITE_NAME,
     images: [
       {
-        url: "/images/og-default.png",
-        width: 1200,
-        height: 630,
-        alt: "Nadira — Decants de Perfumes de Lujo",
-        type: "image/png",
+        url: "/images/wallpaperherosection.webp",
+        width: 3312,
+        height: 1900,
+        alt: "Nadira — Decants de Perfumes de Lujo | Argentina",
+        type: "image/webp",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nadira — Decants de Perfumes de Lujo",
+    title: "Nadira — Decants de Perfumes de Lujo | Argentina",
     description:
-      "Descubrí las fragancias más exclusivas del mundo en formato decant. Perfumes originales de lujo.",
-    images: ["/images/og-default.png"],
+      "Probá perfumes de lujo originales en formato decant de 5ml. Envíos a todo Argentina.",
+    images: ["/images/wallpaperherosection.webp"],
   },
   robots: {
     index: true,
@@ -88,10 +92,6 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  verification: {
-    // Add Google Search Console verification when available
-    // google: "your-verification-code",
   },
   category: "shopping",
 };

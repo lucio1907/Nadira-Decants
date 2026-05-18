@@ -1,321 +1,347 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
 export const HeroSection = () => {
   const [scrollY, setScrollY] = useState(0);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0, clientX: -1000, clientY: -1000 });
-  const [isMounted, setIsMounted] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop, { passive: true });
+    const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    
-    // Initial mouse pos in center
-    setMousePos({ 
-      x: 0, 
-      y: 0, 
-      clientX: window.innerWidth / 2, 
-      clientY: window.innerHeight / 2 
-    });
-
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkDesktop);
+    };
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const { clientX, clientY } = e;
-    const { innerWidth, innerHeight } = window;
-    const x = (clientX / innerWidth) - 0.5;
-    const y = (clientY / innerHeight) - 0.5;
-    setMousePos({ x, y, clientX, clientY });
-  };
-
   return (
-    <section 
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      className="relative w-full h-[100svh] flex flex-col items-center justify-center overflow-hidden"
-      style={{ background: "var(--black)" }}
+    <section
+      className="relative w-full min-h-[100svh] flex flex-col overflow-hidden"
       aria-label="Nadira Decants — Probá perfumes de lujo antes de elegir"
     >
-      {/* 1. Subtle Animated Grid Background */}
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none opacity-[0.15]"
+      {/* Background image — full cover with parallax */}
+      <Image
+        src="/images/wallpaperherosection.webp"
+        alt=""
+        fill
+        priority
+        quality={90}
+        sizes="(max-width: 768px) 220vw, 100vw"
+        aria-hidden="true"
         style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px",
-          transform: `translateY(${scrollY * 0.2}px)`,
+          objectFit: "cover",
+          objectPosition: "center 30%",
+          transform: isDesktop
+            ? `scale(1.08) translateY(${scrollY * 0.25}px)`
+            : "none",
+          transformOrigin: "center top",
+          willChange: isDesktop ? "transform" : "auto",
         }}
       />
-      {/* Grid fade masks using var(--black) */}
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none" 
-        style={{ background: "linear-gradient(to bottom, var(--black) 0%, transparent 20%, transparent 80%, var(--black) 100%)" }} 
-      />
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none" 
-        style={{ background: "linear-gradient(to right, var(--black) 0%, transparent 20%, transparent 80%, var(--black) 100%)" }} 
-      />
 
-      {/* 2. Kinetic Background Outline Text */}
-      <div 
-        className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-[0.03] select-none mix-blend-screen"
-        style={{ transform: `translateY(${scrollY * 0.4}px)` }}
-      >
-        <div className="whitespace-nowrap animate-pan-text">
-          <span className="text-[25vw] font-black tracking-tighter text-transparent stroke-text" style={{ fontFamily: "var(--font-display)" }}>
-            PERFUMES DE AUTOR — DECANTS — 
-          </span>
-          <span className="text-[25vw] font-black tracking-tighter text-transparent stroke-text" style={{ fontFamily: "var(--font-display)" }}>
-            PERFUMES DE AUTOR — DECANTS — 
-          </span>
-        </div>
-      </div>
-
-      {/* 3. Interactive Mouse Spotlight */}
-      {isMounted && (
-        <div 
-          className="absolute rounded-full pointer-events-none mix-blend-screen blur-[100px] z-0 transition-transform duration-700 ease-out"
-          style={{
-            width: "600px",
-            height: "600px",
-            background: "radial-gradient(circle, var(--accent-subtle) 0%, transparent 60%)",
-            transform: `translate(${mousePos.clientX - 300}px, ${mousePos.clientY - 300}px)`,
-            left: 0,
-            top: 0
-          }}
-        />
-      )}
-
-      {/* 4. Grain Overlay for Texture */}
+      {/* Base dark layer — mobile */}
       <div
-        className="absolute inset-0 z-[1] pointer-events-none opacity-[0.03] mix-blend-overlay"
-        style={{ backgroundImage: `url("https://grains-filter.com/wp-content/uploads/2021/04/Noise-Texture-1.png")` }}
+        className="absolute inset-0 z-[1] pointer-events-none lg:hidden"
+        style={{ background: "rgba(0,0,0,0.3)" }}
       />
 
-      {/* 5. Main Content Layer */}
+      {/* Vignette — solo desktop */}
       <div
-        className="container-nd relative z-10 flex flex-col items-center text-center px-4"
+        className="absolute inset-0 z-[1] pointer-events-none hidden lg:block"
         style={{
-          transform: `translateY(${scrollY * -0.1}px)`
+          background:
+            "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.35) 100%)",
         }}
-      >
-        <div className="overflow-hidden mb-6">
-          <span
-            className="text-nd-label inline-block animate-slide-up"
-            style={{ color: "var(--accent)" }}
-          >
-            Probá antes de elegir
-          </span>
-        </div>
+      />
 
-        <div className="relative mb-10 group">
-          {/* Subtle glow behind title that pulses */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full blur-[80px] animate-pulse-slow pointer-events-none" style={{ background: "var(--accent-subtle)", opacity: 0.3 }} />
+      {/* Top fade */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 30%)",
+        }}
+      />
 
-          <h1
-            className="tracking-tighter ml-[-0.05em] animate-slide-up-delayed relative z-10"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(4rem, 12vw, 8.5rem)",
-              lineHeight: 0.95,
-              fontWeight: 700,
-              color: "var(--text-display)",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            NADIRA<span style={{ color: "var(--accent)", fontStyle: "italic" }}>.</span>
-          </h1>
-        </div>
+      {/* Bottom fade into page */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.65) 80%, var(--black) 100%)",
+        }}
+      />
 
-        <p
-          className="mb-10 lg:text-subheading font-light max-w-sm animate-slide-up-delayed-2"
+      {/* Left darkening */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 50%, transparent 75%)",
+        }}
+      />
+
+      {/* Content */}
+      <div className="container-nd relative z-10 flex items-center min-h-[100svh] py-24 lg:py-0">
+
+        {/* Glass panel + text */}
+        <div
+          className="hero-reveal w-full lg:w-auto"
           style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "clamp(1rem, 2vw, 1.15rem)",
-            lineHeight: 1.7,
-            color: "var(--text-secondary)",
+            background: "linear-gradient(135deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.18) 100%)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            borderRadius: "0px",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            borderRight: "1px solid rgba(255,255,255,0.04)",
+            borderBottom: "1px solid rgba(255,255,255,0.04)",
+            borderLeft: "2px solid rgba(211,176,0,0.3)",
+            padding: "clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 5vw, 3rem)",
+            maxWidth: "580px",
           }}
         >
-          Probá perfumes sin tener que comprar el frasco entero.
-          Te ayudo a encontrar el indicado para vos.
-        </p>
 
-        <div className="animate-slide-up-delayed-3">
-          <Link href="/#productos" className="nd-btn-primary px-10 gap-3 group">
-            VER COLECCIÓN
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Link>
+          {/* Eyebrow */}
+          <div className="hero-reveal hero-delay-1 flex items-center gap-3 mb-6">
+            <div className="w-6 h-px flex-shrink-0" style={{ background: "var(--accent)" }} />
+            <span
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "10px",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "var(--accent)",
+                fontWeight: 600,
+              }}
+            >
+              Decants de Perfumes de Lujo
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="mb-6">
+            <span
+              className="hero-reveal hero-delay-2 block"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.8rem, 6vw, 5.5rem)",
+                fontWeight: 300,
+                fontStyle: "italic",
+                lineHeight: 1,
+                color: "rgba(255,255,255,0.75)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Probá antes
+            </span>
+            <span
+              className="hero-reveal hero-delay-3 block"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(2.8rem, 6vw, 5.5rem)",
+                fontWeight: 700,
+                lineHeight: 1.05,
+                color: "#ffffff",
+                letterSpacing: "-0.03em",
+              }}
+            >
+              de elegir<span style={{ color: "var(--accent)" }}>.</span>
+            </span>
+          </h1>
+
+          {/* Separator */}
+          <div
+            className="hero-reveal hero-delay-4 mb-6"
+            style={{ width: "40px", height: "1px", background: "linear-gradient(90deg, var(--accent), transparent)" }}
+          />
+
+          {/* Subline */}
+          <p
+            className="hero-reveal hero-delay-4 mb-8"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+              lineHeight: 1.8,
+              color: "rgba(255,255,255,0.65)",
+              fontWeight: 300,
+            }}
+          >
+            Probá perfumes sin tener que comprar el frasco entero.
+            Te ayudo a encontrar el indicado para vos.
+          </p>
+
+          {/* CTAs */}
+          <div className="hero-reveal hero-delay-5 flex flex-col sm:flex-row gap-3 mb-8">
+            <Link href="/#productos" className="nd-btn-primary px-7 gap-3 group justify-center">
+              VER COLECCIÓN
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link href="/#sobre-mi" className="nd-btn-secondary px-7 justify-center">
+              CÓMO FUNCIONA
+            </Link>
+          </div>
+
+          {/* Trust strip */}
+          <div
+            className="hero-reveal hero-delay-6 flex flex-wrap gap-x-5 gap-y-2 pt-6"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            {["100% Originales", "Envíos a Todo el País", "Probá Antes de Comprar"].map((item) => (
+              <div key={item} className="flex items-center gap-2">
+                <span style={{ color: "var(--accent)", fontSize: "6px" }}>✦</span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "9px",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  {item}
+                </span>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 
-      {/* 6. Scroll Indicator - Animated Line */}
-      <div className="absolute bottom-[90px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 animate-fade-in-delayed hidden sm:flex">
-        <span 
-          className="text-nd-caption"
+      {/* Scroll indicator */}
+      <div
+        className="hero-scroll-indicator absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+        style={{ bottom: "calc(44px + 1px)" }}
+      >
+        <span
           style={{
+            fontFamily: "var(--font-body)",
             fontSize: "9px",
             letterSpacing: "0.3em",
+            textTransform: "uppercase",
             color: "var(--text-disabled)",
           }}
         >
           SCROLL
         </span>
-        <div className="w-[1px] h-[48px] overflow-hidden">
-          <div 
+        <div className="w-px h-10 overflow-hidden">
+          <div
             style={{
               width: "100%",
               height: "100%",
               background: "linear-gradient(to bottom, var(--accent), transparent)",
-              animation: "scrollDown 2.5s ease-in-out infinite",
-              transformOrigin: "top"
-            }} 
+              animation: "heroScrollLine 2.5s ease-in-out infinite",
+              transformOrigin: "top",
+            }}
           />
         </div>
       </div>
 
-      {/* 7. Infinite Marquee Banner */}
-      <div 
+      {/* Marquee banner */}
+      <div
         className="absolute bottom-0 w-full overflow-hidden z-20"
-        style={{ 
-          background: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
+        style={{
+          background: "rgba(0, 0, 0, 0.35)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
           borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-          padding: "16px 0"
+          height: "44px",
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        <div className="flex whitespace-nowrap animate-marquee">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex items-center mx-4 text-xs tracking-[0.3em] uppercase" style={{ color: "var(--text-secondary)" }}>
-              <span>PROBÁ ANTES DE COMPRAR</span>
-              <span className="mx-8" style={{ color: "var(--accent)" }}>✦</span>
-              <span>ENVÍOS A TODO EL PAÍS</span>
-              <span className="mx-8" style={{ color: "var(--accent)" }}>✦</span>
-              <span>100% ORIGINALES</span>
-              <span className="mx-8" style={{ color: "var(--accent)" }}>✦</span>
+        <div className="hero-marquee flex whitespace-nowrap">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center mx-6"
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "10px",
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span>Probá Antes de Comprar</span>
+              <span
+                className="mx-8"
+                style={{ color: "var(--accent)", fontSize: "7px" }}
+              >
+                ✦
+              </span>
+              <span>Envíos a Todo el País</span>
+              <span
+                className="mx-8"
+                style={{ color: "var(--accent)", fontSize: "7px" }}
+              >
+                ✦
+              </span>
+              <span>100% Originales</span>
+              <span
+                className="mx-8"
+                style={{ color: "var(--accent)", fontSize: "7px" }}
+              >
+                ✦
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 8. Corner Decorative Accents */}
-      <div className="absolute top-12 left-12 w-24 h-24 pointer-events-none opacity-20 hidden lg:block z-0">
-        <div className="absolute top-0 left-0 w-full h-[1px]" style={{ background: "linear-gradient(90deg, var(--accent), transparent)" }} />
-        <div className="absolute top-0 left-0 h-full w-[1px]" style={{ background: "linear-gradient(180deg, var(--accent), transparent)" }} />
-      </div>
-      <div className="absolute bottom-32 right-12 w-24 h-24 pointer-events-none opacity-20 hidden lg:block z-0">
-        <div className="absolute bottom-0 right-0 w-full h-[1px]" style={{ background: "linear-gradient(270deg, var(--accent), transparent)" }} />
-        <div className="absolute bottom-0 right-0 h-full w-[1px]" style={{ background: "linear-gradient(0deg, var(--accent), transparent)" }} />
-      </div>
-
-      {/* 9. Floating Particles */}
-      {isMounted && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          {[...Array(12)].map((_, i) => (
-            <div 
-              key={i}
-              className="absolute rounded-full bg-[var(--accent)] opacity-20 blur-[1px] animate-float-particle"
-              style={{
-                width: "2px",
-                height: "2px",
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDuration: `${15 + Math.random() * 10}s`,
-                animationDelay: `${Math.random() * -20}s`
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* CSS Configurations & Animations */}
+      {/* Component-scoped styles */}
       <style dangerouslySetInnerHTML={{
         __html: `
-        .stroke-text {
-          -webkit-text-stroke: 1px rgba(255, 255, 255, 1);
-        }
+          /* Entry animations */
+          .hero-reveal {
+            opacity: 0;
+            animation: heroReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .hero-delay-1 { animation-delay: 0.05s; }
+          .hero-delay-2 { animation-delay: 0.18s; }
+          .hero-delay-3 { animation-delay: 0.30s; }
+          .hero-delay-4 { animation-delay: 0.44s; }
+          .hero-delay-5 { animation-delay: 0.58s; }
+          .hero-delay-6 { animation-delay: 0.75s; }
 
-        @keyframes panText {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-pan-text {
-          display: inline-block;
-          animation: panText 60s linear infinite;
-        }
+          @keyframes heroReveal {
+            from { opacity: 0; transform: translateY(22px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
 
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slide-up {
-          animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-slide-up-delayed {
-          opacity: 0;
-          animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
-        }
-        .animate-slide-up-delayed-2 {
-          opacity: 0;
-          animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-        }
-        .animate-slide-up-delayed-3 {
-          opacity: 0;
-          animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
-        }
+          /* Scroll line */
+          .hero-scroll-indicator {
+            opacity: 0;
+            animation: heroFadeIn 0.8s ease-out 1.2s forwards;
+          }
+          @keyframes heroFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+          }
+          @keyframes heroScrollLine {
+            0%    { transform: scaleY(0); transform-origin: top; }
+            40%   { transform: scaleY(1); transform-origin: top; }
+            40.1% { transform: scaleY(1); transform-origin: bottom; }
+            100%  { transform: scaleY(0); transform-origin: bottom; }
+          }
 
-        @keyframes scrollDown {
-          0% { transform: scaleY(0); transform-origin: top; }
-          40% { transform: scaleY(1); transform-origin: top; }
-          40.1% { transform: scaleY(1); transform-origin: bottom; }
-          100% { transform: scaleY(0); transform-origin: bottom; }
-        }
-
-        @keyframes pulseSlow {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); }
-          50% { transform: translate(-50%, -50%) scale(1.1); }
-        }
-        .animate-pulse-slow {
-          animation: pulseSlow 4s ease-in-out infinite;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fade-in-delayed {
-          opacity: 0;
-          animation: fadeIn 1s ease-out 1s forwards;
-        }
-
-        @keyframes marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 30s linear infinite;
-          width: max-content;
-        }
-
-        @keyframes floatParticle {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(20px, -20px); }
-        }
-        .animate-float-particle {
-          animation: floatParticle linear infinite;
-        }
-      `}} />
+          /* Marquee */
+          .hero-marquee {
+            width: max-content;
+            animation: heroMarquee 35s linear infinite;
+          }
+          @keyframes heroMarquee {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+          }
+        `
+      }} />
     </section>
   );
 };

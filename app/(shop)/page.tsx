@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/home/SectionHeading";
 import { AboutSection } from "@/components/home/AboutSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { JsonLd } from "@/components/common/JsonLd";
+import { ArrowRight } from "lucide-react";
 
 const SITE_URL = "https://nadiradecants.com.ar";
 
@@ -173,58 +174,68 @@ const HomePage = async () => {
       {/* FAQ Section */}
       <FAQSection />
 
-      {/* CTA Section — dramatic editorial */}
+      {/* CTA Section */}
       <section
         aria-label="Llamada a la acción"
-        className="transition-colors duration-500 ease-in-out relative overflow-hidden"
+        className="relative overflow-hidden"
         style={{
-          background: "var(--surface)",
-          padding: "160px 0",
+          background: "var(--black)",
+          padding: "clamp(80px, 12vw, 160px) 0",
         }}
       >
-        {/* Golden ambient glow */}
+        {/* Glow dorado central */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] pointer-events-none"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(211, 176, 0, 0.06) 0%, transparent 70%)",
+            width: "800px",
+            height: "800px",
+            background: "radial-gradient(circle, rgba(211,176,0,0.1) 0%, transparent 65%)",
           }}
         />
 
-        <div className="container-nd text-center max-w-2xl mx-auto relative z-10">
-          <p
-            className="text-nd-label"
-            style={{
-              marginBottom: "var(--space-md)",
-              color: "var(--accent)",
-            }}
-          >
-            ¿Listo para descubrir?
+        {/* Esquinas decorativas */}
+        <div className="absolute top-10 left-10 hidden lg:block" style={{ width: "56px", height: "56px", borderTop: "1px solid rgba(211,176,0,0.25)", borderLeft: "1px solid rgba(211,176,0,0.25)" }} />
+        <div className="absolute top-10 right-10 hidden lg:block" style={{ width: "56px", height: "56px", borderTop: "1px solid rgba(211,176,0,0.25)", borderRight: "1px solid rgba(211,176,0,0.25)" }} />
+        <div className="absolute bottom-10 left-10 hidden lg:block" style={{ width: "56px", height: "56px", borderBottom: "1px solid rgba(211,176,0,0.25)", borderLeft: "1px solid rgba(211,176,0,0.25)" }} />
+        <div className="absolute bottom-10 right-10 hidden lg:block" style={{ width: "56px", height: "56px", borderBottom: "1px solid rgba(211,176,0,0.25)", borderRight: "1px solid rgba(211,176,0,0.25)" }} />
+
+        <div className="container-nd text-center relative z-10" style={{ maxWidth: "680px", margin: "0 auto" }}>
+
+          {/* Eyebrow con líneas laterales */}
+          <div className="flex items-center justify-center gap-5 mb-10">
+            <div style={{ flex: 1, maxWidth: "72px", height: "1px", background: "linear-gradient(to right, transparent, rgba(211,176,0,0.5))" }} />
+            <span style={{ fontFamily: "var(--font-body)", fontSize: "10px", letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--accent)", fontWeight: 600, whiteSpace: "nowrap" }}>
+              Descubrí tu fragancia
+            </span>
+            <div style={{ flex: 1, maxWidth: "72px", height: "1px", background: "linear-gradient(to left, transparent, rgba(211,176,0,0.5))" }} />
+          </div>
+
+          {/* Headline editorial */}
+          <h2 style={{ marginBottom: "2rem" }}>
+            <span style={{ display: "block", fontFamily: "var(--font-display)", fontSize: "clamp(2.8rem, 7vw, 6rem)", fontWeight: 300, fontStyle: "italic", color: "rgba(255,255,255,0.55)", letterSpacing: "-0.02em", lineHeight: 1 }}>
+              Tu fragancia ideal
+            </span>
+            <span style={{ display: "block", fontFamily: "var(--font-display)", fontSize: "clamp(2.8rem, 7vw, 6rem)", fontWeight: 700, color: "#ffffff", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              te espera<span style={{ color: "var(--accent)" }}>.</span>
+            </span>
+          </h2>
+
+          {/* Separador dorado */}
+          <div style={{ width: "48px", height: "1px", background: "linear-gradient(90deg, transparent, var(--accent), transparent)", margin: "0 auto 2rem" }} />
+
+          {/* Subtexto */}
+          <p style={{ fontFamily: "var(--font-body)", fontSize: "clamp(0.875rem, 1.5vw, 1rem)", color: "rgba(255,255,255,0.45)", fontWeight: 300, lineHeight: 1.8, maxWidth: "380px", margin: "0 auto 3rem" }}>
+            Explorá nuestra colección de decants originales y encontrá la fragancia perfecta para vos.
           </p>
 
-          {/* Decorative line */}
-          <div
-            className="mx-auto mb-8"
-            style={{
-              width: "48px",
-              height: "1px",
-              background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
-              opacity: 0.5,
-            }}
-          />
-
-          <h2
-            className="text-display-md lg:text-display-lg"
-            style={{
-              marginBottom: "var(--space-xl)",
-              fontWeight: 400,
-              fontStyle: "italic",
-              letterSpacing: "-0.02em",
-            }}
+          {/* CTA */}
+          <a
+            href="#productos"
+            className="nd-btn-primary gap-3 group inline-flex items-center"
+            style={{ padding: "0 2.5rem" }}
           >
-            Tu fragancia ideal te espera
-          </h2>
-          <a href="#productos" className="nd-btn-primary px-10">
-            Explorar Colección
+            EXPLORAR COLECCIÓN
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </a>
         </div>
       </section>

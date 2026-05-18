@@ -90,12 +90,24 @@ export const VariantSelector = ({
     <div>
       {/* Size label + stock indicator */}
       <div className="flex items-center justify-between mb-4">
-        <p
-          className="text-nd-label tracking-[0.1em]"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          Tamaño
-        </p>
+        <div>
+          <p
+            className="text-nd-label tracking-[0.1em]"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Tamaño del decant
+          </p>
+          <p
+            className="mt-0.5"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "10px",
+              color: "var(--text-disabled)",
+              letterSpacing: "0.05em",
+            }}
+          >
+          </p>
+        </div>
         <div
           className="nd-animate-fade-in flex flex-col items-end gap-1.5"
           key={`stock-${selected.ml}-${selected.stock}`}

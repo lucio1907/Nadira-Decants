@@ -7,11 +7,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
-        disallow: ["/admin/", "/api/", "/checkout/", "/carrito"],
+        allow: ["/", "/producto/"],
+        disallow: [
+          "/admin/",
+          "/api/",
+          "/checkout/",
+          "/checkout/status/",
+          "/carrito/",
+          "/carrito",
+        ],
       },
       {
-        // Allow AI crawlers explicitly
         userAgent: [
           "GPTBot",
           "ChatGPT-User",
@@ -21,10 +27,11 @@ export default function robots(): MetadataRoute.Robots {
           "PerplexityBot",
           "Applebot-Extended",
         ],
-        allow: ["/", "/llms.txt", "/llms-full.txt"],
-        disallow: ["/admin/", "/api/", "/checkout/"],
+        allow: ["/", "/producto/", "/llms.txt"],
+        disallow: ["/admin/", "/api/", "/checkout/", "/carrito/"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }
