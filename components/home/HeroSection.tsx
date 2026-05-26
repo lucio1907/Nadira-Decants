@@ -89,7 +89,7 @@ export const HeroSection = () => {
       />
 
       {/* Content */}
-      <div className="container-nd relative z-10 flex items-center min-h-[100svh] py-24 lg:py-0">
+      <div className="container-nd relative z-10 flex items-center min-h-[100svh] pt-32 pb-24 lg:py-0">
 
         {/* Glass panel + text */}
         <div

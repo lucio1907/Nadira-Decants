@@ -59,7 +59,7 @@ export const AboutSection = () => {
             <ScrollReveal delay={0.4} className="h-full">
               <div className="relative h-full w-full overflow-hidden shadow-2xl">
                 <Image
-                  src="/images/imagen-sobre-mi.webp"
+                  src="/images/about_me.webp"
                   alt="Arte del decantado Nadira"
                   fill
                   className="object-cover transition-transform duration-1000 hover:scale-105"
