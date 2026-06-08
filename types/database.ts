@@ -38,6 +38,7 @@ export type Database = {
           expiracion: string | null
           id: string
           minimo_compra: number | null
+          mostrar_en_popup: boolean | null
           tipo: string
           usos_actuales: number | null
           usos_maximos: number | null
@@ -50,6 +51,7 @@ export type Database = {
           expiracion?: string | null
           id?: string
           minimo_compra?: number | null
+          mostrar_en_popup?: boolean | null
           tipo: string
           usos_actuales?: number | null
           usos_maximos?: number | null
@@ -62,6 +64,7 @@ export type Database = {
           expiracion?: string | null
           id?: string
           minimo_compra?: number | null
+          mostrar_en_popup?: boolean | null
           tipo?: string
           usos_actuales?: number | null
           usos_maximos?: number | null

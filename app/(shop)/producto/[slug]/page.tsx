@@ -310,7 +310,7 @@ const ProductoPage = async ({
               {/* Brand + Name Group */}
               <div className="nd-animate-fade-in-up">
                 {/* Brand line */}
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
                   <div
                     className="h-[1px] nd-golden-line"
                     style={{ width: "24px", animation: "none", opacity: 0.5 }}

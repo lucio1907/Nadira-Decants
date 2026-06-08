@@ -13,8 +13,8 @@ export async function getCoupons(): Promise<Coupon[]> {
     const { data, error } = await supabase
       .from("cupones")
       .select(`
-        id, codigo, valor, tipo, activo, expiracion, 
-        minimo_compra, usos_maximos, usos_actuales, created_at
+        id, codigo, valor, tipo, activo, expiracion,
+        minimo_compra, usos_maximos, usos_actuales, mostrar_en_popup, created_at
       `)
       .order("created_at", { ascending: false });
 
@@ -27,6 +27,33 @@ export async function getCoupons(): Promise<Coupon[]> {
   } catch (error) {
     console.error("Error in getCoupons:", error);
     return [];
+  }
+}
+
+/**
+ * Returns the active coupon flagged for the welcome popup, if any.
+ * Excludes expired and exhausted coupons.
+ */
+export async function getPromoPopupCoupon(): Promise<Coupon | null> {
+  try {
+    const supabase = await createAdminClient();
+    const { data, error } = await supabase
+      .from("cupones")
+      .select("id, codigo, valor, tipo, activo, expiracion, minimo_compra, usos_maximos, usos_actuales, mostrar_en_popup")
+      .eq("mostrar_en_popup", true)
+      .eq("activo", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    if (data.expiracion && new Date(data.expiracion) < new Date()) return null;
+    if (data.usos_maximos && (data.usos_actuales ?? 0) >= data.usos_maximos) return null;
+
+    return data as Coupon;
+  } catch {
+    return null;
   }
 }
 

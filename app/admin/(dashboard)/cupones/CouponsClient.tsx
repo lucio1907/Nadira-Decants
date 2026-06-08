@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Coupon } from "@/types";
-import { Plus, Search, Edit2, Trash2, Copy, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Copy, CheckCircle2, XCircle, Sparkles } from "lucide-react";
 import { CouponForm } from "./CouponForm";
 import { deleteCouponAction } from "./actions";
 import { format } from "date-fns";
@@ -115,6 +115,20 @@ export function CouponsClient({ initialCoupons }: Props) {
                           <h3 className="text-2xl font-display text-[var(--text-display)] tracking-[0.2em] uppercase font-bold">
                             {coupon.codigo}
                           </h3>
+                          {coupon.mostrar_en_popup && (
+                            <span
+                              className="flex items-center gap-1 text-[9px] uppercase tracking-widest font-bold px-2 py-1 border rounded"
+                              style={{
+                                color: "var(--accent)",
+                                borderColor: "rgba(211,176,0,0.3)",
+                                background: "var(--accent-subtle)",
+                              }}
+                              title="Aparece en popup de bienvenida"
+                            >
+                              <Sparkles size={10} />
+                              Popup
+                            </span>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

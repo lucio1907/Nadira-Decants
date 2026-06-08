@@ -21,6 +21,7 @@ export function CouponForm({ coupon, onClose }: Props) {
       minimo_compra: 0,
       activo: true,
       usos_actuales: 0,
+      mostrar_en_popup: false,
     }
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -147,6 +148,46 @@ export function CouponForm({ coupon, onClose }: Props) {
                   }}
                 />
               </div>
+            </div>
+          </section>
+
+          {/* Sección: Visibilidad en Tienda */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-3 border-b border-[var(--border)] pb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+              <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--accent)]">Visibilidad en Tienda</h3>
+            </div>
+
+            <div
+              className="flex items-start justify-between gap-6 p-5"
+              style={{ background: "var(--surface-raised)", border: "1px solid var(--border-visible)" }}
+            >
+              <div className="flex flex-col gap-1.5 flex-1">
+                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                  Mostrar en popup de bienvenida
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-disabled)" }}>
+                  Si está activo, este código aparece en un modal exclusivo la primera vez que un visitante entra a la tienda. Solo un cupón a la vez.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!formData.mostrar_en_popup}
+                onClick={() => setFormData({ ...formData, mostrar_en_popup: !formData.mostrar_en_popup })}
+                className="relative shrink-0 w-12 h-6 rounded-full transition-all duration-300 focus:outline-none mt-0.5"
+                style={{
+                  background: formData.mostrar_en_popup ? "var(--accent)" : "var(--border-visible)",
+                }}
+              >
+                <span
+                  className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full transition-all duration-300 shadow-sm"
+                  style={{
+                    background: "var(--surface)",
+                    transform: formData.mostrar_en_popup ? "translateX(24px)" : "translateX(0)",
+                  }}
+                />
+              </button>
             </div>
           </section>
 

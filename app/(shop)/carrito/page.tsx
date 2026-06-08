@@ -188,6 +188,18 @@ const CarritoPage = () => {
                   >
                     {item.variante.ml}ml
                   </p>
+                  {/* Price — visible only on mobile (hidden on sm+) */}
+                  <p
+                    className="sm:hidden"
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--body-sm)",
+                      color: "var(--text-primary)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ${(item.variante.precio * item.quantity).toLocaleString("es-AR")}
+                  </p>
                 </div>
 
                 {/* Quantity controls */}

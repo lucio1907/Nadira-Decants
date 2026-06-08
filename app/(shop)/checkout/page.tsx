@@ -496,7 +496,7 @@ Adjunto el comprobante de pago a continuación.`;
                   <h2 className="text-nd-label" style={{ marginBottom: "var(--space-lg)" }}>
                     Método de entrega
                   </h2>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => {
                         setShippingMethod("retiro");
@@ -513,7 +513,7 @@ Adjunto el comprobante de pago a continuación.`;
                       }}
                       className={`nd-segment ${shippingMethod === "envio" ? "nd-segment-active" : ""}`}
                     >
-                      Envío a domicilio (Correo Argentino)
+                      Envío a domicilio
                     </button>
                   </div>
                 </div>
@@ -960,8 +960,8 @@ Adjunto el comprobante de pago a continuación.`;
                             Dirección de entrega
                           </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                            <div className="md:col-span-2 grid grid-cols-4 gap-4">
-                              <div className="col-span-3 flex flex-col">
+                            <div className="md:col-span-2 grid grid-cols-[3fr_1fr] gap-4">
+                              <div className="flex flex-col">
                                 <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Calle</label>
                                 <input
                                   type="text"
@@ -972,8 +972,8 @@ Adjunto el comprobante de pago a continuación.`;
                                   onChange={handleInputChange}
                                 />
                               </div>
-                              <div className="col-span-1 flex flex-col">
-                                <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Número</label>
+                              <div className="flex flex-col">
+                                <label className="text-nd-label" style={{ fontSize: '9px', marginBottom: '-8px', marginTop: '12px' }}>Nro.</label>
                                 <input
                                   type="text"
                                   name="numero"
@@ -1092,18 +1092,18 @@ Adjunto el comprobante de pago a continuación.`;
                   >
                     Método de pago
                   </h2>
-                  <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                     <button
                       onClick={() => setPaymentMethodMode("mp")}
                       className={`nd-segment ${paymentMethodMode === "mp" ? "nd-segment-active" : ""}`}
                     >
-                      Mercado Pago (Tarjetas / Dinero)
+                      Mercado Pago
                     </button>
                     <button
                       onClick={() => setPaymentMethodMode("transferencia")}
                       className={`nd-segment ${paymentMethodMode === "transferencia" ? "nd-segment-active" : ""}`}
                     >
-                      Transferencia (-10% OFF)
+                      Transferencia (−10% OFF)
                     </button>
                   </div>
 

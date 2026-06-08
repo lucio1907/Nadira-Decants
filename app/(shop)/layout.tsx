@@ -2,6 +2,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartSidebar } from "@/components/cart/CartSidebar";
 import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
+import { PromoModal } from "@/components/ui/PromoModal";
 import Script from "next/script";
 
 export default function ShopLayout({
@@ -13,6 +14,7 @@ export default function ShopLayout({
     <>
       <Navbar />
       <CartSidebar />
+      <PromoModal />
       <main className="flex-1">{children}</main>
       <Footer />
       <FloatingWhatsApp />
