@@ -64,6 +64,7 @@ export interface Coupon {
   usos_maximos?: number;
   usos_actuales: number;
   activo: boolean;
+  mostrar_en_popup?: boolean;
   created_at: Date;
 }
 

@@ -24,12 +24,10 @@ export const FeatureGrid = ({ features }: FeatureGridProps) => {
         {features.map((feature, i) => (
           <ScrollReveal key={i} delay={i * 0.15}>
             <div
-              className="flex flex-col items-center text-center group"
-              style={{
-                padding: "var(--space-md)",
-                // Staggered vertical offset for asymmetric composition
-                transform: i === 1 ? "translateY(40px)" : i === 2 ? "translateY(16px)" : "translateY(0)",
-              }}
+              className={`flex flex-col items-center text-center group ${
+                i === 1 ? "md:translate-y-10" : i === 2 ? "md:translate-y-4" : ""
+              }`}
+              style={{ padding: "var(--space-md)" }}
             >
               {/* Elegant numeral with serif */}
               <div
