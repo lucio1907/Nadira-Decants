@@ -49,7 +49,7 @@ export async function getOrders(): Promise<Order[]> {
         id, items, total, status, mp_payment_id, payer_email, metodo_entrega,
         cliente_nombre, cliente_apellido, cliente_telefono, direccion_envio,
         shipping_cost, nro_seguimiento, cupon_id, descuento, created_at, updated_at,
-        envia_shipment_id, label_url, envia_carrier, envia_service, email_sent
+        envia_shipment_id, label_url, envia_carrier, envia_service, email_sent, admin_email_sent
       `)
       .order("created_at", { ascending: false });
 

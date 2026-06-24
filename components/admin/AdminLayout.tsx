@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package2, Box, Menu, X, ShoppingCart, ExternalLink, BarChart3, Ticket, Activity } from "lucide-react";
+import { LogOut, Package2, Box, Menu, X, ShoppingCart, ExternalLink, BarChart3, Ticket, Activity, Users } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { useRouter } from "next/navigation";
@@ -44,6 +44,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     { name: "Métricas Web", href: "/admin/metricas", icon: Activity },
     { name: "Productos", href: "/admin/productos", icon: Package2 },
     { name: "Ordenes", href: "/admin/ordenes", icon: ShoppingCart },
+    { name: "Clientes", href: "/admin/clientes", icon: Users },
     { name: "Embalaje", href: "/admin/envios", icon: Box },
     { name: "Cupones", href: "/admin/cupones", icon: Ticket },
     // { name: "Ajustes", href: "/admin/ajustes", icon: Settings },
