@@ -82,6 +82,7 @@ export type Database = {
           descuento: number | null
           direccion_envio: Json | null
           email_sent: boolean | null
+          admin_email_sent: boolean | null
           id: string
           items: Json
           metodo_entrega: string | null
@@ -106,6 +107,7 @@ export type Database = {
           descuento?: number | null
           direccion_envio?: Json | null
           email_sent?: boolean | null
+          admin_email_sent?: boolean | null
           id?: string
           items: Json
           metodo_entrega?: string | null
@@ -130,6 +132,7 @@ export type Database = {
           descuento?: number | null
           direccion_envio?: Json | null
           email_sent?: boolean | null
+          admin_email_sent?: boolean | null
           id?: string
           items?: Json
           metodo_entrega?: string | null
