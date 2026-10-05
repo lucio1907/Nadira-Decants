@@ -193,7 +193,7 @@ export const HeroSection = () => {
             className="hero-reveal hero-delay-6 flex flex-wrap gap-x-5 gap-y-2 pt-6"
             style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
           >
-            {["100% Originales", "Envíos a Todo el País", "Probá Antes de Comprar"].map((item) => (
+            {["100% Originales", "Envíos a Todo el País", "Probá Antes de Comprar", "10% off por transferencia bancaria"].map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <span style={{ color: "var(--accent)", fontSize: "6px" }}>✦</span>
                 <span
@@ -284,6 +284,13 @@ export const HeroSection = () => {
                 ✦
               </span>
               <span>100% Originales</span>
+              <span
+                className="mx-8"
+                style={{ color: "var(--accent)", fontSize: "7px" }}
+              >
+                ✦
+              </span>
+              <span>10% off por transferencia bancaria</span>
               <span
                 className="mx-8"
                 style={{ color: "var(--accent)", fontSize: "7px" }}
